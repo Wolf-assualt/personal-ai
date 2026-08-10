@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>YUVA AI</title>
+
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <div class="app">
+
+        <header>
+            <div class="logo">🤖</div>
+
+            <div>
+                <h1>YUVA AI</h1>
+                <p>Your personal AI assistant</p>
+            </div>
+        </header>
+
+        <main id="chat">
+
+            <div class="message ai">
+                <div class="avatar">🤖</div>
+
+                <div class="bubble">
+                    Hey! I'm YUVA AI 👋<br>
+                    How can I help you today?
+                </div>
+            </div>
+
+        </main>
+
+        <div class="input-area">
+
+            <input
+                type="text"
+                id="userInput"
+                placeholder="Ask YUVA AI anything..."
+                autocomplete="off"
+            >
+
+            <button onclick="sendMessage()">
+                ➤
+            </button>
+
+        </div>
+
+    </div>
+
+    <script src="script.js"></script>
+
+</body>
+</html>
