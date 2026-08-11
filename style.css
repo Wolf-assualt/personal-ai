@@ -1,320 +1,1105 @@
+/* ========================================
+   YUVA AI — FUTURISTIC UI
+======================================== */
+
 * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
 }
 
-body {
-    font-family: Arial, sans-serif;
-    background: #0b0f19;
-    color: white;
-    height: 100vh;
+:root {
+    --bg: #05070d;
+    --panel: rgba(13, 17, 28, 0.72);
+    --panel-solid: #0d111c;
+    --border: rgba(255, 255, 255, 0.10);
+    --text: #f4f7ff;
+    --muted: #8f99ad;
+    --accent: #7c5cff;
+    --accent-2: #00d9ff;
+    --danger: #ff5577;
 }
 
+html,
+body {
+    width: 100%;
+    height: 100%;
+}
+
+body {
+    font-family:
+        Inter,
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        sans-serif;
+
+    background:
+        radial-gradient(
+            circle at 15% 20%,
+            rgba(124, 92, 255, 0.18),
+            transparent 30%
+        ),
+        radial-gradient(
+            circle at 85% 75%,
+            rgba(0, 217, 255, 0.12),
+            transparent 28%
+        ),
+        #05070d;
+
+    color: var(--text);
+
+    overflow: hidden;
+}
 
 /* ========================================
-   LOGIN
+   BACKGROUND EFFECT
 ======================================== */
 
-#loginScreen {
+body::before {
+    content: "";
     position: fixed;
     inset: 0;
+
+    background-image:
+        linear-gradient(
+            rgba(255, 255, 255, 0.025) 1px,
+            transparent 1px
+        ),
+        linear-gradient(
+            90deg,
+            rgba(255, 255, 255, 0.025) 1px,
+            transparent 1px
+        );
+
+    background-size: 50px 50px;
+
+    mask-image: linear-gradient(
+        to bottom,
+        black,
+        transparent 90%
+    );
+
+    pointer-events: none;
+}
+
+/* ========================================
+   LOGIN SCREEN
+======================================== */
+
+.login-screen {
+    width: 100%;
+    height: 100vh;
 
     display: flex;
     align-items: center;
     justify-content: center;
 
-    background: #0b0f19;
+    padding: 20px;
 
-    z-index: 9999;
+    position: relative;
 }
 
-.login-box {
-    width: 90%;
-    max-width: 380px;
+/* Decorative glowing circles */
 
-    padding: 35px;
+.login-screen::before,
+.login-screen::after {
+    content: "";
+    position: absolute;
+
+    border-radius: 50%;
+
+    filter: blur(70px);
+
+    pointer-events: none;
+}
+
+.login-screen::before {
+    width: 280px;
+    height: 280px;
+
+    background: rgba(124, 92, 255, 0.20);
+
+    top: 5%;
+    left: 5%;
+}
+
+.login-screen::after {
+    width: 240px;
+    height: 240px;
+
+    background: rgba(0, 217, 255, 0.14);
+
+    bottom: 5%;
+    right: 5%;
+}
+
+/* ========================================
+   LOGIN CARD
+======================================== */
+
+.login-card {
+    width: min(430px, 100%);
+
+    padding: 42px 34px;
 
     text-align: center;
 
-    background: #171d2b;
+    background: var(--panel);
 
-    border: 1px solid #303849;
+    border: 1px solid var(--border);
 
-    border-radius: 18px;
+    border-radius: 28px;
+
+    backdrop-filter: blur(25px);
+    -webkit-backdrop-filter: blur(25px);
+
+    box-shadow:
+        0 30px 80px rgba(0, 0, 0, 0.55),
+        inset 0 1px 0 rgba(255, 255, 255, 0.06);
+
+    position: relative;
+
+    z-index: 2;
+
+    animation: cardAppear 0.8s ease;
 }
+
+@keyframes cardAppear {
+    from {
+        opacity: 0;
+        transform: translateY(25px) scale(0.97);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+/* ========================================
+   LOGO
+======================================== */
 
 .login-logo {
-    font-size: 50px;
-    margin-bottom: 10px;
+    width: 92px;
+    height: 92px;
+
+    margin: 0 auto 22px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 28px;
+
+    font-size: 42px;
+
+    background:
+        linear-gradient(
+            145deg,
+            rgba(124, 92, 255, 0.30),
+            rgba(0, 217, 255, 0.12)
+        );
+
+    border: 1px solid rgba(124, 92, 255, 0.35);
+
+    box-shadow:
+        0 0 35px rgba(124, 92, 255, 0.25),
+        inset 0 0 25px rgba(255, 255, 255, 0.03);
+
+    animation: logoFloat 4s ease-in-out infinite;
 }
 
-.login-box h1 {
-    font-size: 26px;
+@keyframes logoFloat {
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(-7px);
+    }
 }
 
-.login-box p {
-    color: #8d96a8;
-    margin: 8px 0 25px;
+/* ========================================
+   LOGIN TEXT
+======================================== */
+
+.login-card h1 {
+    font-size: clamp(36px, 8vw, 52px);
+
+    letter-spacing: 7px;
+
+    font-weight: 800;
+
+    background:
+        linear-gradient(
+            100deg,
+            #ffffff,
+            #b8b1ff,
+            #7cddff
+        );
+
+    -webkit-background-clip: text;
+    background-clip: text;
+
+    color: transparent;
+
+    margin-bottom: 8px;
 }
 
-.login-box input {
-    width: 100%;
+.login-subtitle {
+    color: #b5bdd0;
 
-    padding: 14px;
+    font-size: 15px;
 
+    letter-spacing: 2px;
+
+    text-transform: uppercase;
+}
+
+.login-description {
+    margin-top: 30px;
     margin-bottom: 12px;
 
-    border-radius: 10px;
-
-    border: 1px solid #303849;
-
-    background: #0b0f19;
-
-    color: white;
-
-    outline: none;
-
-    font-size: 15px;
-}
-
-.login-box button {
-    width: 100%;
-
-    padding: 14px;
-
-    border: none;
-
-    border-radius: 10px;
-
-    background: #2563eb;
-
-    color: white;
-
-    font-size: 15px;
-
-    cursor: pointer;
-}
-
-.login-box button:hover {
-    background: #1d4ed8;
-}
-
-.guest-button {
-    margin-top: 10px;
-
-    background: #303849 !important;
-}
-
-#loginMessage {
-    margin: 10px 0;
-
-    color: #ff6b6b;
+    color: var(--muted);
 
     font-size: 14px;
 }
 
+/* ========================================
+   PASSWORD INPUT
+======================================== */
+
+#creatorPassword {
+    width: 100%;
+
+    height: 56px;
+
+    padding: 0 18px;
+
+    border-radius: 15px;
+
+    border: 1px solid rgba(255, 255, 255, 0.10);
+
+    outline: none;
+
+    background: rgba(255, 255, 255, 0.045);
+
+    color: white;
+
+    font-size: 15px;
+
+    transition:
+        border 0.25s,
+        box-shadow 0.25s,
+        background 0.25s;
+}
+
+#creatorPassword::placeholder {
+    color: #697388;
+}
+
+#creatorPassword:focus {
+    border-color: rgba(124, 92, 255, 0.75);
+
+    background: rgba(124, 92, 255, 0.06);
+
+    box-shadow:
+        0 0 0 4px rgba(124, 92, 255, 0.10),
+        0 0 30px rgba(124, 92, 255, 0.12);
+}
 
 /* ========================================
-   APP
+   MAIN LOGIN BUTTON
+======================================== */
+
+.login-card > button:not(.guest-button) {
+    width: 100%;
+
+    height: 56px;
+
+    margin-top: 14px;
+
+    border: none;
+
+    border-radius: 15px;
+
+    cursor: pointer;
+
+    color: white;
+
+    font-size: 15px;
+
+    font-weight: 700;
+
+    letter-spacing: 0.5px;
+
+    background:
+        linear-gradient(
+            100deg,
+            #6d4cff,
+            #00aeea
+        );
+
+    box-shadow:
+        0 12px 30px rgba(76, 89, 255, 0.25);
+
+    transition:
+        transform 0.2s,
+        box-shadow 0.2s,
+        filter 0.2s;
+}
+
+.login-card > button:not(.guest-button):hover {
+    transform: translateY(-2px);
+
+    filter: brightness(1.12);
+
+    box-shadow:
+        0 16px 38px rgba(76, 89, 255, 0.35);
+}
+
+.login-card > button:not(.guest-button):active {
+    transform: translateY(0);
+}
+
+/* ========================================
+   LOGIN MESSAGE
+======================================== */
+
+.login-message {
+    min-height: 22px;
+
+    margin-top: 12px;
+
+    font-size: 13px;
+
+    color: #ff718b;
+}
+
+/* ========================================
+   DIVIDER
+======================================== */
+
+.guest-divider {
+    display: flex;
+    align-items: center;
+
+    gap: 14px;
+
+    margin: 12px 0;
+}
+
+.guest-divider::before,
+.guest-divider::after {
+    content: "";
+
+    flex: 1;
+
+    height: 1px;
+
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.guest-divider span {
+    color: #667086;
+
+    font-size: 12px;
+}
+
+/* ========================================
+   GUEST BUTTON
+======================================== */
+
+.guest-button {
+    width: 100%;
+
+    height: 52px;
+
+    border-radius: 15px;
+
+    border: 1px solid rgba(255, 255, 255, 0.10);
+
+    background: rgba(255, 255, 255, 0.035);
+
+    color: #aeb7c9;
+
+    cursor: pointer;
+
+    font-size: 14px;
+
+    transition:
+        background 0.2s,
+        color 0.2s,
+        border 0.2s;
+}
+
+.guest-button:hover {
+    background: rgba(255, 255, 255, 0.07);
+
+    color: white;
+
+    border-color: rgba(255, 255, 255, 0.18);
+}
+
+/* ========================================
+   MAIN APPLICATION
 ======================================== */
 
 .app {
     width: 100%;
-    max-width: 900px;
-
     height: 100vh;
 
-    margin: auto;
-
     display: flex;
+
     flex-direction: column;
+
+    background:
+        radial-gradient(
+            circle at 10% 10%,
+            rgba(124, 92, 255, 0.08),
+            transparent 25%
+        ),
+        #05070d;
 }
 
+/* ========================================
+   TOP BAR
+======================================== */
 
-/* HEADER */
+.topbar {
+    height: 76px;
 
-header {
-    height: 80px;
+    flex-shrink: 0;
 
     display: flex;
+
     align-items: center;
 
-    gap: 15px;
+    justify-content: space-between;
 
-    padding: 15px 20px;
+    padding: 0 24px;
 
-    border-bottom: 1px solid #252b3a;
+    border-bottom: 1px solid var(--border);
+
+    background: rgba(5, 7, 13, 0.72);
+
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
 }
 
-.logo {
-    width: 48px;
-    height: 48px;
+/* ========================================
+   BRAND
+======================================== */
+
+.brand {
+    display: flex;
+
+    align-items: center;
+
+    gap: 13px;
+}
+
+.brand-icon {
+    width: 44px;
+    height: 44px;
 
     display: flex;
+
     align-items: center;
     justify-content: center;
 
-    background: #171d2b;
+    border-radius: 14px;
 
-    border-radius: 50%;
+    background:
+        linear-gradient(
+            135deg,
+            rgba(124, 92, 255, 0.25),
+            rgba(0, 217, 255, 0.10)
+        );
 
-    font-size: 25px;
+    border: 1px solid rgba(124, 92, 255, 0.25);
+
+    font-size: 21px;
 }
 
-header h1 {
-    font-size: 20px;
+.brand h2 {
+    font-size: 17px;
+
+    letter-spacing: 2px;
 }
 
-header p {
-    color: #8d96a8;
+#status {
+    display: block;
 
-    font-size: 13px;
+    margin-top: 2px;
 
-    margin-top: 3px;
+    color: #798398;
+
+    font-size: 11px;
 }
+
+/* ========================================
+   LOGOUT
+======================================== */
 
 .logout-button {
-    margin-left: auto;
+    padding: 9px 15px;
 
-    width: auto;
+    border-radius: 10px;
 
-    padding: 8px 12px;
+    border: 1px solid rgba(255, 255, 255, 0.09);
 
-    background: #303849;
+    background: rgba(255, 255, 255, 0.035);
 
-    border: none;
-
-    border-radius: 8px;
-
-    color: white;
+    color: #9da7ba;
 
     cursor: pointer;
+
+    transition: 0.2s;
 }
 
+.logout-button:hover {
+    color: white;
 
-/* CHAT */
+    border-color: rgba(255, 255, 255, 0.20);
 
-main {
+    background: rgba(255, 255, 255, 0.07);
+}
+
+/* ========================================
+   CHAT
+======================================== */
+
+.chat {
     flex: 1;
 
     overflow-y: auto;
 
-    padding: 25px 20px;
+    padding: 30px max(18px, calc((100% - 900px) / 2));
+
+    scroll-behavior: smooth;
 }
+
+.chat::-webkit-scrollbar {
+    width: 6px;
+}
+
+.chat::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.chat::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.10);
+
+    border-radius: 20px;
+}
+
+/* ========================================
+   MESSAGE
+======================================== */
 
 .message {
     display: flex;
 
     gap: 12px;
 
-    margin-bottom: 25px;
+    margin-bottom: 22px;
+
+    animation: messageAppear 0.25s ease;
+}
+
+@keyframes messageAppear {
+    from {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.message.user {
+    flex-direction: row-reverse;
 }
 
 .avatar {
-    width: 35px;
-    height: 35px;
+    width: 38px;
+    height: 38px;
+
+    flex-shrink: 0;
+
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 12px;
+
+    background: rgba(255, 255, 255, 0.05);
+
+    border: 1px solid var(--border);
+
+    font-size: 17px;
+}
+
+.bubble {
+    max-width: min(720px, 78%);
+
+    padding: 13px 16px;
+
+    border-radius: 17px;
+
+    background: rgba(255, 255, 255, 0.045);
+
+    border: 1px solid rgba(255, 255, 255, 0.07);
+
+    color: #dfe5f2;
+
+    line-height: 1.6;
+
+    font-size: 14px;
+
+    word-wrap: break-word;
+}
+
+.message.user .bubble {
+    background:
+        linear-gradient(
+            135deg,
+            rgba(124, 92, 255, 0.25),
+            rgba(0, 174, 234, 0.12)
+        );
+
+    border-color: rgba(124, 92, 255, 0.20);
+
+    color: white;
+}
+
+/* ========================================
+   INPUT AREA
+======================================== */
+
+.input-area {
+    width: min(900px, calc(100% - 30px));
+
+    margin: 0 auto 18px;
+
+    min-height: 64px;
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 10px;
+
+    padding: 7px;
+
+    border-radius: 18px;
+
+    background: rgba(13, 17, 28, 0.82);
+
+    border: 1px solid rgba(255, 255, 255, 0.09);
+
+    box-shadow:
+        0 20px 50px rgba(0, 0, 0, 0.35);
+
+    backdrop-filter: blur(18px);
+}
+
+#userInput {
+    flex: 1;
+
+    height: 48px;
+
+    padding: 0 15px;
+
+    border: none;
+
+    outline: none;
+
+    background: transparent;
+
+    color: white;
+
+    font-size: 14px;
+}
+
+#userInput::placeholder {
+    color: #687288;
+}
+
+.input-area button {
+    height: 48px;
+
+    padding: 0 21px;
+
+    border: none;
+
+    border-radius: 13px;
+
+    background:
+        linear-gradient(
+            100deg,
+            #6d4cff,
+            #00aeea
+        );
+
+    color: white;
+
+    font-weight: 700;
+
+    cursor: pointer;
+
+    transition:
+        transform 0.2s,
+        filter 0.2s;
+}
+
+.input-area button:hover {
+    transform: translateY(-1px);
+
+    filter: brightness(1.12);
+}
+
+/* ========================================
+   MOBILE
+======================================== */
+
+@media (max-width: 600px) {
+
+    .login-card {
+        padding: 34px 22px;
+
+        border-radius: 24px;
+    }
+
+    .login-logo {
+        width: 78px;
+        height: 78px;
+
+        font-size: 34px;
+
+        border-radius: 23px;
+    }
+
+    .login-card h1 {
+        font-size: 37px;
+
+        letter-spacing: 5px;
+    }
+
+    .login-description {
+        margin-top: 24px;
+    }
+
+    .topbar {
+        height: 68px;
+
+        padding: 0 14px;
+    }
+
+    .brand-icon {
+        width: 39px;
+        height: 39px;
+
+        font-size: 18px;
+    }
+
+    .brand h2 {
+        font-size: 15px;
+    }
+
+    .logout-button {
+        padding: 8px 11px;
+
+        font-size: 12px;
+    }
+
+    .chat {
+        padding: 20px 13px;
+    }
+
+    .bubble {
+        max-width: 82%;
+
+        font-size: 13.5px;
+    }
+
+    .input-area {
+        width: calc(100% - 16px);
+
+        margin-bottom: 8px;
+
+        border-radius: 15px;
+    }
+
+    #userInput {
+        min-width: 0;
+    }
+
+    .input-area button {
+        padding: 0 15px;
+    }
+}
+
+/* ========================================
+   REDUCED MOTION
+======================================== */
+
+@media (prefers-reduced-motion: reduce) {
+
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+
+        animation-iteration-count: 1 !important;
+
+        scroll-behavior: auto !important;
+    }
+}
+/* ========================================
+   CURSOR / TOUCH GLOW
+======================================== */
+
+#cursorGlow {
+    position: fixed;
+
+    width: 260px;
+    height: 260px;
+
+    border-radius: 50%;
+
+    pointer-events: none;
+
+    z-index: 9999;
+
+    transform: translate(-50%, -50%);
+
+    background:
+        radial-gradient(
+            circle,
+            rgba(124, 92, 255, 0.13) 0%,
+            rgba(0, 217, 255, 0.06) 30%,
+            transparent 70%
+        );
+
+    filter: blur(8px);
+
+    opacity: 0;
+
+    transition: opacity 0.25s ease;
+}
+/* ========================================
+   YUVA AI ORB
+======================================== */
+
+.ai-orb {
+    width: 58px;
+    height: 58px;
+
+    position: relative;
 
     display: flex;
     align-items: center;
     justify-content: center;
+}
 
-    background: #171d2b;
+/* Central AI core */
+
+.orb-core {
+    width: 23px;
+    height: 23px;
 
     border-radius: 50%;
 
-    flex-shrink: 0;
+    background:
+        radial-gradient(
+            circle at 35% 30%,
+            #ffffff,
+            #a99cff 35%,
+            #6d4cff 70%,
+            #3b2aa8
+        );
+
+    box-shadow:
+        0 0 12px rgba(255, 255, 255, 0.8),
+        0 0 30px rgba(124, 92, 255, 0.8),
+        0 0 55px rgba(0, 217, 255, 0.35);
+
+    animation:
+        corePulse 2.2s ease-in-out infinite;
 }
 
-.bubble {
-    background: #171d2b;
+@keyframes corePulse {
 
-    padding: 13px 16px;
+    0%,
+    100% {
+        transform: scale(0.92);
 
-    border-radius: 12px;
-
-    max-width: 75%;
-
-    line-height: 1.5;
-}
-
-
-/* USER */
-
-.message.user {
-    justify-content: flex-end;
-}
-
-.message.user .bubble {
-    background: #2563eb;
-}
-
-
-/* INPUT */
-
-.input-area {
-    display: flex;
-
-    gap: 10px;
-
-    padding: 15px 20px;
-
-    border-top: 1px solid #252b3a;
-}
-
-.input-area input {
-    flex: 1;
-
-    padding: 15px;
-
-    border-radius: 10px;
-
-    border: 1px solid #303849;
-
-    background: #171d2b;
-
-    color: white;
-
-    outline: none;
-
-    font-size: 15px;
-}
-
-.input-area button {
-    width: 52px;
-
-    border: none;
-
-    border-radius: 10px;
-
-    background: #2563eb;
-
-    color: white;
-
-    font-size: 20px;
-
-    cursor: pointer;
-}
-
-.input-area button:hover {
-    background: #1d4ed8;
-}
-
-
-/* MOBILE */
-
-@media (max-width: 600px) {
-
-    .bubble {
-        max-width: 85%;
+        box-shadow:
+            0 0 12px rgba(255, 255, 255, 0.7),
+            0 0 28px rgba(124, 92, 255, 0.7),
+            0 0 45px rgba(0, 217, 255, 0.25);
     }
 
-    header {
-        padding: 12px;
+    50% {
+        transform: scale(1.12);
+
+        box-shadow:
+            0 0 18px rgba(255, 255, 255, 0.9),
+            0 0 42px rgba(124, 92, 255, 0.95),
+            0 0 70px rgba(0, 217, 255, 0.45);
+    }
+}
+
+/* Orbital rings */
+
+.orb-ring {
+    position: absolute;
+
+    border-radius: 50%;
+
+    border: 1px solid rgba(124, 92, 255, 0.55);
+
+    pointer-events: none;
+}
+
+.ring-1 {
+    width: 40px;
+    height: 40px;
+
+    border-color: rgba(124, 92, 255, 0.65);
+
+    animation:
+        orbRotate 3.5s linear infinite;
+}
+
+.ring-2 {
+    width: 51px;
+    height: 31px;
+
+    border-color: rgba(0, 217, 255, 0.55);
+
+    transform: rotate(55deg);
+
+    animation:
+        orbRotateReverse 4.5s linear infinite;
+}
+
+.ring-3 {
+    width: 62px;
+    height: 25px;
+
+    border-color: rgba(160, 130, 255, 0.38);
+
+    transform: rotate(-55deg);
+
+    animation:
+        orbRotate 5.5s linear infinite;
+}
+
+@keyframes orbRotate {
+
+    from {
+        transform: rotate(0deg);
     }
 
-    main {
-        padding: 20px 12px;
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+@keyframes orbRotateReverse {
+
+    from {
+        transform: rotate(360deg);
     }
 
+    to {
+        transform: rotate(0deg);
+    }
+}
+
+/* Remove the old logo emoji styling */
+
+.login-logo {
+    position: relative;
+
+    overflow: visible;
+}
+
+/* Orb hover reaction */
+
+.login-logo:hover .orb-core {
+    transform: scale(1.2);
+}
+
+.login-logo:hover {
+    box-shadow:
+        0 0 45px rgba(124, 92, 255, 0.35),
+        inset 0 0 30px rgba(255, 255, 255, 0.04);
+}
+/* ========================================
+   SYSTEM STATUS
+======================================== */
+
+.system-status {
+    display: inline-flex;
+
+    align-items: center;
+
+    gap: 8px;
+
+    margin-top: 14px;
+
+    padding: 7px 12px;
+
+    border-radius: 999px;
+
+    background: rgba(0, 255, 170, 0.045);
+
+    border: 1px solid rgba(0, 255, 170, 0.12);
+
+    color: #78dcb8;
+
+    font-size: 10px;
+
+    font-weight: 700;
+
+    letter-spacing: 1.4px;
+}
+
+.status-dot {
+    width: 7px;
+    height: 7px;
+
+    border-radius: 50%;
+
+    background: #50e3a4;
+
+    box-shadow:
+        0 0 7px rgba(80, 227, 164, 0.9),
+        0 0 16px rgba(80, 227, 164, 0.45);
+
+    animation: statusPulse 1.8s ease-in-out infinite;
+}
+
+@keyframes statusPulse {
+
+    0%,
+    100% {
+        opacity: 0.55;
+        transform: scale(0.85);
+    }
+
+    50% {
+        opacity: 1;
+        transform: scale(1.15);
+    }
 }

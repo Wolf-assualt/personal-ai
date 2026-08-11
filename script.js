@@ -441,3 +441,33 @@ document.addEventListener(
         checkExistingSession();
     }
 );
+// ========================================
+// CURSOR / TOUCH GLOW
+// ========================================
+
+const cursorGlow =
+    document.getElementById("cursorGlow");
+
+if (cursorGlow) {
+
+    document.addEventListener(
+        "pointermove",
+        function (event) {
+
+            cursorGlow.style.left =
+                event.clientX + "px";
+
+            cursorGlow.style.top =
+                event.clientY + "px";
+
+            cursorGlow.style.opacity = "1";
+        }
+    );
+
+    document.addEventListener(
+        "pointerleave",
+        function () {
+            cursorGlow.style.opacity = "0";
+        }
+    );
+}
