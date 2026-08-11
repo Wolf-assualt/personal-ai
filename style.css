@@ -1193,3 +1193,388 @@ body::before {
         box-shadow: 0 0 0 0 rgba(255, 76, 109, 0);
     }
 }
+/* ========================================
+   YUVA AI — ADVANCED VOICE UI
+======================================== */
+
+.input-wrapper {
+    width: min(900px, calc(100% - 30px));
+    margin: 0 auto 18px;
+    position: relative;
+}
+
+/* ----------------------------------------
+   VOICE STATUS
+---------------------------------------- */
+
+.voice-status {
+    position: absolute;
+    left: 16px;
+    bottom: calc(100% + 8px);
+
+    display: flex;
+    align-items: center;
+    gap: 7px;
+
+    padding: 6px 10px;
+
+    border-radius: 999px;
+
+    background: rgba(13, 17, 28, 0.82);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+
+    color: #78849a;
+    font-size: 11px;
+
+    opacity: 0;
+    transform: translateY(5px);
+
+    pointer-events: none;
+
+    transition:
+        opacity 0.25s ease,
+        transform 0.25s ease;
+}
+
+.voice-status.visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.voice-status.active {
+    color: #ffffff;
+}
+
+.voice-status-dot {
+    width: 6px;
+    height: 6px;
+
+    border-radius: 50%;
+
+    background: #667086;
+
+    transition:
+        background 0.25s ease,
+        box-shadow 0.25s ease;
+}
+
+.voice-status.listening .voice-status-dot {
+    background: #ff5577;
+
+    box-shadow:
+        0 0 8px rgba(255, 85, 119, 0.9);
+
+    animation: voiceDotPulse 1s infinite;
+}
+
+.voice-status.speaking .voice-status-dot {
+    background: #00d9ff;
+
+    box-shadow:
+        0 0 8px rgba(0, 217, 255, 0.9);
+
+    animation: voiceDotPulse 0.7s infinite;
+}
+
+@keyframes voiceDotPulse {
+
+    0%,
+    100% {
+        transform: scale(0.8);
+        opacity: 0.6;
+    }
+
+    50% {
+        transform: scale(1.25);
+        opacity: 1;
+    }
+}
+
+/* ----------------------------------------
+   VOICE PANEL
+---------------------------------------- */
+
+.voice-panel {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+
+    gap: 8px;
+
+    margin-bottom: 7px;
+
+    opacity: 0;
+
+    transform: translateY(4px);
+
+    pointer-events: none;
+
+    transition:
+        opacity 0.25s ease,
+        transform 0.25s ease;
+}
+
+.voice-panel.visible {
+    opacity: 1;
+
+    transform: translateY(0);
+
+    pointer-events: auto;
+}
+
+.voice-panel label {
+    color: #778196;
+    font-size: 11px;
+}
+
+#voiceSelect {
+    height: 34px;
+
+    max-width: 230px;
+
+    padding: 0 10px;
+
+    border-radius: 9px;
+
+    border: 1px solid rgba(255, 255, 255, 0.09);
+
+    background: rgba(13, 17, 28, 0.9);
+
+    color: #dfe5f2;
+
+    outline: none;
+
+    font-size: 11px;
+
+    cursor: pointer;
+}
+
+#voiceSelect:focus {
+    border-color: rgba(124, 92, 255, 0.5);
+
+    box-shadow:
+        0 0 0 3px rgba(124, 92, 255, 0.08);
+}
+
+#voiceSelect option {
+    background: #0d111c;
+    color: white;
+}
+
+.stop-speaking-button {
+    width: 34px !important;
+    height: 34px !important;
+
+    padding: 0 !important;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 9px !important;
+
+    background: rgba(255, 85, 119, 0.08) !important;
+
+    border: 1px solid rgba(255, 85, 119, 0.15) !important;
+
+    color: #ff718b !important;
+
+    font-size: 13px !important;
+
+    box-shadow: none !important;
+}
+
+.stop-speaking-button:hover {
+    background: rgba(255, 85, 119, 0.16) !important;
+
+    transform: none !important;
+
+    filter: none !important;
+}
+
+/* ----------------------------------------
+   MIC BUTTON
+---------------------------------------- */
+
+.mic-button {
+    position: relative;
+
+    width: 48px !important;
+    height: 48px !important;
+
+    padding: 0 !important;
+
+    flex-shrink: 0;
+
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 13px !important;
+
+    background: rgba(255, 255, 255, 0.06) !important;
+
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+
+    color: white;
+
+    font-size: 18px !important;
+
+    box-shadow: none !important;
+
+    transition:
+        transform 0.2s ease,
+        background 0.25s ease,
+        border 0.25s ease,
+        box-shadow 0.25s ease !important;
+}
+
+.mic-button:hover {
+    transform: translateY(-1px) !important;
+
+    background: rgba(124, 92, 255, 0.14) !important;
+
+    border-color: rgba(124, 92, 255, 0.3) !important;
+
+    filter: none !important;
+}
+
+.mic-button:active {
+    transform: scale(0.94) !important;
+}
+
+/* LISTENING */
+
+.mic-button.listening {
+    background:
+        linear-gradient(
+            135deg,
+            #ff3f68,
+            #ff7650
+        ) !important;
+
+    border-color: rgba(255, 255, 255, 0.2) !important;
+
+    animation: advancedMicPulse 1.2s infinite;
+
+    box-shadow:
+        0 0 0 0 rgba(255, 63, 104, 0.6),
+        0 0 25px rgba(255, 63, 104, 0.35) !important;
+}
+
+@keyframes advancedMicPulse {
+
+    0% {
+        transform: scale(1);
+
+        box-shadow:
+            0 0 0 0 rgba(255, 63, 104, 0.6),
+            0 0 20px rgba(255, 63, 104, 0.35);
+    }
+
+    50% {
+        transform: scale(1.05);
+
+        box-shadow:
+            0 0 0 9px rgba(255, 63, 104, 0),
+            0 0 30px rgba(255, 63, 104, 0.55);
+    }
+
+    100% {
+        transform: scale(1);
+
+        box-shadow:
+            0 0 0 14px rgba(255, 63, 104, 0),
+            0 0 20px rgba(255, 63, 104, 0.3);
+    }
+}
+
+/* SPEAKING */
+
+.mic-button.speaking {
+    background:
+        linear-gradient(
+            135deg,
+            #6d4cff,
+            #00bde8
+        ) !important;
+
+    border-color:
+        rgba(0, 217, 255, 0.35) !important;
+
+    animation: speakingButtonPulse 1s infinite alternate;
+
+    box-shadow:
+        0 0 20px rgba(0, 217, 255, 0.3) !important;
+}
+
+@keyframes speakingButtonPulse {
+
+    from {
+        transform: scale(1);
+    }
+
+    to {
+        transform: scale(1.07);
+    }
+}
+
+/* ----------------------------------------
+   MOBILE
+---------------------------------------- */
+
+@media (max-width: 600px) {
+
+    .input-wrapper {
+        width: calc(100% - 14px);
+
+        margin: 6px auto 8px;
+    }
+
+    .voice-status {
+        left: 8px;
+
+        bottom: calc(100% + 6px);
+    }
+
+    .voice-panel {
+        justify-content: flex-end;
+
+        padding-right: 3px;
+    }
+
+    .voice-panel label {
+        display: none;
+    }
+
+    #voiceSelect {
+        max-width: 190px;
+    }
+
+    .stop-speaking-button {
+        width: 34px !important;
+        min-width: 34px !important;
+    }
+
+    .mic-button {
+        width: 44px !important;
+        height: 44px !important;
+    }
+}
+
+/* ----------------------------------------
+   REDUCED MOTION
+---------------------------------------- */
+
+@media (prefers-reduced-motion: reduce) {
+
+    .mic-button.listening,
+    .mic-button.speaking,
+    .voice-status-dot {
+        animation: none !important;
+    }
+}

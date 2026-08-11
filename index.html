@@ -146,30 +146,67 @@
         <!-- ========================================
              INPUT AREA
         ========================================= -->
+<div class="input-wrapper">
 
-        <div class="input-area">
+    <!-- Voice status -->
+    <div id="voiceStatus" class="voice-status">
+        <span class="voice-status-dot"></span>
+        <span id="voiceStatusText">Ready</span>
+    </div>
 
-            <button
-                id="micButton"
-                class="mic-button"
-                onclick="toggleVoiceInput()"
-                title="Speak your message"
-            >
-                🎤
-            </button>
+    <!-- Voice settings -->
+    <div id="voicePanel" class="voice-panel">
 
-            <input
-                type="text"
-                id="userInput"
-                placeholder="Message YUVA AI..."
-                autocomplete="off"
-            >
+        <label for="voiceSelect">
+            🗣️ YUVA Voice
+        </label>
 
-            <button onclick="sendMessage()">
-                Send
-            </button>
+        <select id="voiceSelect">
+            <option value="">✨ Default Voice</option>
+        </select>
 
-        </div>
+        <button
+            id="stopSpeakingButton"
+            class="stop-speaking-button"
+            type="button"
+            onclick="stopSpeaking()"
+            title="Stop YUVA speaking"
+        >
+            ⏹
+        </button>
+
+    </div>
+
+    <!-- Chat input -->
+    <div class="input-area">
+
+        <button
+            id="micButton"
+            class="mic-button"
+            onclick="toggleVoiceInput()"
+            title="Speak your message"
+            type="button"
+        >
+            🎤
+        </button>
+
+        <input
+            type="text"
+            id="userInput"
+            placeholder="Message YUVA AI..."
+            autocomplete="off"
+        >
+
+        <button
+            onclick="sendMessage()"
+            type="button"
+        >
+            Send
+        </button>
+
+    </div>
+
+</div>
 
     </div>
 

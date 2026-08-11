@@ -306,7 +306,7 @@ function escapeHTML(text) {
 }
 
 // ========================================
-// VOICE INPUT (Speech-to-Text)
+// YUVA AI — ADVANCED VOICE SYSTEM
 // ========================================
 
 const SpeechRecognitionAPI =
@@ -314,114 +314,803 @@ const SpeechRecognitionAPI =
     window.webkitSpeechRecognition;
 
 let recognition = null;
+
 let isListening = false;
+let isSpeaking = false;
 
-if (SpeechRecognitionAPI) {
-    recognition = new SpeechRecognitionAPI();
-    recognition.continuous = false;
-    recognition.interimResults = false;
-    recognition.lang = "en-US";
+let voices = [];
 
-    recognition.onstart = function () {
-        isListening = true;
+const micButton =
+    document.getElementById("micButton");
 
-        const micButton = document.getElementById("micButton");
+const voiceStatus =
+    document.getElementById("voiceStatus");
 
-        if (micButton) {
-            micButton.classList.add("listening");
-            micButton.textContent = "⏺️";
-        }
-    };
+const voiceStatusText =
+    document.getElementById("voiceStatusText");
 
-    recognition.onresult = function (event) {
-        const transcript =
-            event.results[0][0].transcript;
+const voicePanel =
+    document.getElementById("voicePanel");
 
-        input.value = transcript;
-    };
+const voiceSelect =
+    document.getElementById("voiceSelect");
 
-    recognition.onerror = function (error) {
-        console.error("Speech recognition error:", error);
-    };
+const stopSpeakingButton =
+    document.getElementById("stopSpeakingButton");
 
-    recognition.onend = function () {
-        isListening = false;
 
-        const micButton = document.getElementById("micButton");
+// ========================================
+// VOICE STATUS UI
+// ========================================
 
-        if (micButton) {
-            micButton.classList.remove("listening");
-            micButton.textContent = "🎤";
-        }
-    };
+function setVoiceStatus(
+    text,
+    state = "",
+    visible = true
+) {
+
+    if (!voiceStatus) return;
+
+    if (voiceStatusText) {
+        voiceStatusText.textContent = text;
+    }
+
+    voiceStatus.classList.remove(
+        "listening",
+        "speaking",
+        "active"
+    );
+
+    if (state) {
+        voiceStatus.classList.add(state);
+        voiceStatus.classList.add("active");
+    }
+
+    if (visible) {
+        voiceStatus.classList.add("visible");
+    } else {
+        voiceStatus.classList.remove("visible");
+    }
 }
 
+
+// ========================================
+// SPEECH RECOGNITION
+// ========================================
+
+if (SpeechRecognitionAPI) {
+
+    recognition =
+        new SpeechRecognitionAPI();
+
+    recognition.continuous = false;
+
+    recognition.interimResults = true;
+
+    /*
+     * Indian English is generally more
+     * comfortable for your usage.
+     */
+
+    recognition.lang = "en-IN";
+
+
+    recognition.onstart = function () {
+
+        isListening = true;
+
+        /*
+         * Stop YUVA speaking when user
+         * starts talking.
+         */
+
+        if (
+            "speechSynthesis" in window &&
+            speechSynthesis.speaking
+        ) {
+            speechSynthesis.cancel();
+
+            isSpeaking = false;
+        }
+
+
+        if (micButton) {
+
+            micButton.classList.add(
+                "listening"
+            );
+
+            micButton.classList.remove(
+                "speaking"
+            );
+
+            micButton.textContent = "🔴";
+        }
+
+
+        setVoiceStatus(
+            "Listening...",
+            "listening",
+            true
+        );
+    };
+
+
+    recognition.onresult =
+        function (event) {
+
+            let transcript = "";
+
+            let isFinal = false;
+
+
+            for (
+                let i = event.resultIndex;
+                i < event.results.length;
+                i++
+            ) {
+
+                transcript +=
+                    event.results[i][0]
+                        .transcript;
+
+                if (
+                    event.results[i].isFinal
+                ) {
+                    isFinal = true;
+                }
+            }
+
+
+            /*
+             * Show speech live in
+             * the message box.
+             */
+
+            if (input) {
+                input.value =
+                    transcript.trim();
+            }
+
+
+            /*
+             * Automatically send after
+             * the user finishes speaking.
+             */
+
+            if (
+                isFinal &&
+                input &&
+                input.value.trim()
+            ) {
+
+                setVoiceStatus(
+                    "Sending...",
+                    "listening",
+                    true
+                );
+
+                sendMessage();
+            }
+        };
+
+
+    recognition.onerror =
+        function (event) {
+
+            console.error(
+                "Speech recognition error:",
+                event.error
+            );
+
+
+            isListening = false;
+
+
+            if (micButton) {
+
+                micButton.classList.remove(
+                    "listening"
+                );
+
+                micButton.textContent = "🎤";
+            }
+
+
+            if (
+                event.error ===
+                "not-allowed"
+            ) {
+
+                setVoiceStatus(
+                    "Microphone permission denied",
+                    "",
+                    true
+                );
+
+            } else if (
+                event.error ===
+                "no-speech"
+            ) {
+
+                setVoiceStatus(
+                    "No speech detected",
+                    "",
+                    true
+                );
+
+            } else {
+
+                setVoiceStatus(
+                    "Voice input unavailable",
+                    "",
+                    true
+                );
+            }
+
+
+            setTimeout(
+                () => {
+
+                    if (!isSpeaking) {
+
+                        setVoiceStatus(
+                            "Ready",
+                            "",
+                            false
+                        );
+                    }
+
+                },
+                2200
+            );
+        };
+
+
+    recognition.onend =
+        function () {
+
+            isListening = false;
+
+
+            if (micButton) {
+
+                micButton.classList.remove(
+                    "listening"
+                );
+
+                /*
+                 * If YUVA isn't speaking,
+                 * return to microphone icon.
+                 */
+
+                if (!isSpeaking) {
+                    micButton.textContent =
+                        "🎤";
+                }
+            }
+
+
+            if (!isSpeaking) {
+
+                setVoiceStatus(
+                    "Ready",
+                    "",
+                    false
+                );
+            }
+        };
+}
+
+
+// ========================================
+// START / STOP LISTENING
+// ========================================
+
 function toggleVoiceInput() {
+
     if (!recognition) {
+
         addMessage(
             "Voice input isn't supported in this browser. Try Chrome or Edge.",
             "ai"
         );
+
         return;
     }
 
+
     if (isListening) {
+
         recognition.stop();
-    } else {
+
+        return;
+    }
+
+
+    /*
+     * Stop YUVA if currently speaking.
+     */
+
+    stopSpeaking();
+
+
+    try {
+
         recognition.start();
+
+    } catch (error) {
+
+        console.log(
+            "Recognition could not start:",
+            error
+        );
     }
 }
 
+
 // ========================================
-// VOICE OUTPUT (Text-to-Speech)
+// VOICE OUTPUT
 // ========================================
 
 let voiceOutputEnabled =
-    localStorage.getItem("yuva_voice_output") === "true";
+    localStorage.getItem(
+        "yuva_voice_output"
+    ) === "true";
+
 
 function updateVoiceToggleUI() {
-    const voiceToggle = document.getElementById("voiceToggle");
+
+    const voiceToggle =
+        document.getElementById(
+            "voiceToggle"
+        );
 
     if (!voiceToggle) return;
 
-    voiceToggle.textContent = voiceOutputEnabled
-        ? "🔊 Voice: On"
-        : "🔊 Voice: Off";
+
+    voiceToggle.textContent =
+        voiceOutputEnabled
+            ? "🔊 Voice: On"
+            : "🔊 Voice: Off";
+
+
+    /*
+     * Show voice settings only
+     * when voice output is enabled.
+     */
+
+    if (voicePanel) {
+
+        voicePanel.classList.toggle(
+            "visible",
+            voiceOutputEnabled
+        );
+    }
 }
 
+
 function toggleVoiceOutput() {
-    voiceOutputEnabled = !voiceOutputEnabled;
+
+    voiceOutputEnabled =
+        !voiceOutputEnabled;
+
 
     localStorage.setItem(
         "yuva_voice_output",
         voiceOutputEnabled
     );
 
+
     updateVoiceToggleUI();
 
-    // Stop mid-speech if turning off
+
     if (!voiceOutputEnabled) {
-        window.speechSynthesis.cancel();
+
+        stopSpeaking();
+
+        setVoiceStatus(
+            "Voice output disabled",
+            "",
+            true
+        );
+
+        setTimeout(
+            () => {
+
+                if (!isListening) {
+
+                    setVoiceStatus(
+                        "Ready",
+                        "",
+                        false
+                    );
+                }
+
+            },
+            1500
+        );
     }
 }
 
-function speakReply(text) {
-    if (!voiceOutputEnabled) return;
 
-    if (!("speechSynthesis" in window)) return;
+// ========================================
+// LOAD AVAILABLE VOICES
+// ========================================
 
-    // Cancel anything currently being spoken first
-    window.speechSynthesis.cancel();
+function loadVoices() {
 
-    const utterance = new SpeechSynthesisUtterance(text);
+    if (
+        !("speechSynthesis" in window)
+    ) {
+        return;
+    }
 
-    utterance.rate = 1;
-    utterance.pitch = 1;
-    utterance.lang = "en-US";
 
-    window.speechSynthesis.speak(utterance);
+    voices =
+        window.speechSynthesis
+            .getVoices();
+
+
+    if (!voiceSelect) return;
+
+
+    const savedVoice =
+        localStorage.getItem(
+            "yuva_selected_voice"
+        );
+
+
+    voiceSelect.innerHTML = "";
+
+
+    const defaultOption =
+        document.createElement(
+            "option"
+        );
+
+    defaultOption.value = "";
+
+    defaultOption.textContent =
+        "✨ Default Voice";
+
+    voiceSelect.appendChild(
+        defaultOption
+    );
+
+
+    voices.forEach(
+        (voice, index) => {
+
+            const option =
+                document.createElement(
+                    "option"
+                );
+
+            option.value = index;
+
+
+            option.textContent =
+                `${voice.name} • ${voice.lang}`;
+
+
+            voiceSelect.appendChild(
+                option
+            );
+        }
+    );
+
+
+    if (
+        savedVoice !== null &&
+        voices[savedVoice]
+    ) {
+
+        voiceSelect.value =
+            savedVoice;
+    }
 }
 
+
+if (
+    "speechSynthesis" in window
+) {
+
+    loadVoices();
+
+
+    /*
+     * Chrome loads voices
+     * asynchronously.
+     */
+
+    window.speechSynthesis
+        .onvoiceschanged =
+        loadVoices;
+}
+
+
+// ========================================
+// SAVE SELECTED VOICE
+// ========================================
+
+if (voiceSelect) {
+
+    voiceSelect.addEventListener(
+        "change",
+        function () {
+
+            localStorage.setItem(
+                "yuva_selected_voice",
+                voiceSelect.value
+            );
+
+
+            /*
+             * Small confirmation.
+             */
+
+            setVoiceStatus(
+                "Voice selected",
+                "",
+                true
+            );
+
+
+            setTimeout(
+                () => {
+
+                    if (!isSpeaking) {
+
+                        setVoiceStatus(
+                            "Ready",
+                            "",
+                            false
+                        );
+                    }
+
+                },
+                1200
+            );
+        }
+    );
+}
+
+
+// ========================================
+// SPEAK YUVA REPLY
+// ========================================
+
+function speakReply(text) {
+
+    if (!voiceOutputEnabled) {
+        return;
+    }
+
+
+    if (
+        !("speechSynthesis" in window)
+    ) {
+        return;
+    }
+
+
+    /*
+     * Cancel anything currently
+     * being spoken.
+     */
+
+    window.speechSynthesis.cancel();
+
+
+    /*
+     * Clean markdown before speaking.
+     */
+
+    const cleanText =
+        text
+            .replace(
+                /```[\s\S]*?```/g,
+                ""
+            )
+            .replace(
+                /[*_#>`]/g,
+                ""
+            )
+            .replace(
+                /\[([^\]]+)\]\([^)]+\)/g,
+                "$1"
+            )
+            .trim();
+
+
+    if (!cleanText) return;
+
+
+    const utterance =
+        new SpeechSynthesisUtterance(
+            cleanText
+        );
+
+
+    /*
+     * Selected voice.
+     */
+
+    const selectedVoice =
+        voiceSelect
+            ? voiceSelect.value
+            : "";
+
+
+    if (
+        selectedVoice !== "" &&
+        voices[selectedVoice]
+    ) {
+
+        utterance.voice =
+            voices[selectedVoice];
+    }
+
+
+    /*
+     * Natural speech settings.
+     */
+
+    utterance.rate = 1;
+
+    utterance.pitch = 1;
+
+    utterance.volume = 1;
+
+
+    /*
+     * Use selected voice language
+     * if available.
+     */
+
+    if (
+        utterance.voice &&
+        utterance.voice.lang
+    ) {
+
+        utterance.lang =
+            utterance.voice.lang;
+
+    } else {
+
+        utterance.lang =
+            "en-IN";
+    }
+
+
+    utterance.onstart =
+        function () {
+
+            isSpeaking = true;
+
+
+            if (micButton) {
+
+                micButton.classList.add(
+                    "speaking"
+                );
+
+                micButton.classList.remove(
+                    "listening"
+                );
+
+                micButton.textContent =
+                    "🔊";
+            }
+
+
+            setVoiceStatus(
+                "YUVA is speaking...",
+                "speaking",
+                true
+            );
+        };
+
+
+    utterance.onend =
+        function () {
+
+            isSpeaking = false;
+
+
+            if (micButton) {
+
+                micButton.classList.remove(
+                    "speaking"
+                );
+
+                micButton.textContent =
+                    "🎤";
+            }
+
+
+            setVoiceStatus(
+                "Ready",
+                "",
+                false
+            );
+        };
+
+
+    utterance.onerror =
+        function (event) {
+
+            console.error(
+                "Speech synthesis error:",
+                event
+            );
+
+
+            isSpeaking = false;
+
+
+            if (micButton) {
+
+                micButton.classList.remove(
+                    "speaking"
+                );
+
+                micButton.textContent =
+                    "🎤";
+            }
+
+
+            setVoiceStatus(
+                "Ready",
+                "",
+                false
+            );
+        };
+
+
+    window.speechSynthesis.speak(
+        utterance
+    );
+}
+
+
+// ========================================
+// STOP YUVA SPEAKING
+// ========================================
+
+function stopSpeaking() {
+
+    if (
+        "speechSynthesis" in window
+    ) {
+
+        window.speechSynthesis.cancel();
+    }
+
+
+    isSpeaking = false;
+
+
+    if (micButton) {
+
+        micButton.classList.remove(
+            "speaking"
+        );
+
+        if (!isListening) {
+            micButton.textContent =
+                "🎤";
+        }
+    }
+
+
+    setVoiceStatus(
+        "Ready",
+        "",
+        false
+    );
+}
 // ========================================
 // CLEAR MEMORY (New Chat)
 // ========================================
