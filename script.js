@@ -205,7 +205,13 @@ async function sendMessage() {
         );
     }
 }
+function quickMessage(message) {
+    if (!input) return;
 
+    input.value = message;
+
+    sendMessage();
+}
 // ========================================
 // ENTER KEY
 // ========================================

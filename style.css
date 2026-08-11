@@ -2344,3 +2344,608 @@ body::before {
     }
 
 }
+/* ========================================
+   YUVA AI — PREMIUM INPUT BAR
+======================================== */
+
+.input-wrapper {
+    width: min(900px, calc(100% - 30px));
+
+    margin: 0 auto 18px;
+
+    position: relative;
+}
+
+
+/* ========================================
+   INPUT CONTAINER
+======================================== */
+
+.input-area {
+    min-height: 66px;
+
+    padding: 8px 9px;
+
+    display: flex;
+    align-items: center;
+
+    gap: 8px;
+
+    border-radius: 20px;
+
+    background:
+        linear-gradient(
+            135deg,
+            rgba(18,22,36,0.94),
+            rgba(10,13,24,0.92)
+        );
+
+    border:
+        1px solid rgba(255,255,255,0.09);
+
+    box-shadow:
+        0 18px 50px rgba(0,0,0,0.35),
+        inset 0 1px 0 rgba(255,255,255,0.035);
+
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+
+    transition:
+        border-color 0.25s ease,
+        box-shadow 0.25s ease;
+}
+
+
+/* INPUT BAR FOCUS */
+
+.input-area:focus-within {
+    border-color:
+        rgba(124,92,255,0.38);
+
+    box-shadow:
+        0 18px 55px rgba(0,0,0,0.4),
+        0 0 0 3px rgba(124,92,255,0.07),
+        0 0 35px rgba(124,92,255,0.08);
+}
+
+
+/* ========================================
+   TEXT INPUT
+======================================== */
+
+#userInput {
+    flex: 1;
+
+    min-width: 0;
+
+    height: 48px;
+
+    padding: 0 8px;
+
+    border: none;
+
+    outline: none;
+
+    background: transparent;
+
+    color: #f4f7ff;
+
+    font-size: 14px;
+
+    font-family: inherit;
+}
+
+
+#userInput::placeholder {
+    color: #697388;
+
+    transition:
+        color 0.2s ease;
+}
+
+
+#userInput:focus::placeholder {
+    color: #7d879b;
+}
+
+
+/* ========================================
+   MIC BUTTON
+======================================== */
+
+.mic-button {
+    width: 48px !important;
+    height: 48px !important;
+
+    flex-shrink: 0;
+
+    display: flex !important;
+
+    align-items: center;
+    justify-content: center;
+
+    padding: 0 !important;
+
+    border-radius: 14px !important;
+
+    border:
+        1px solid rgba(255,255,255,0.08) !important;
+
+    background:
+        rgba(255,255,255,0.045) !important;
+
+    color: #c1c9d8;
+
+    font-size: 18px !important;
+
+    cursor: pointer;
+
+    transition:
+        transform 0.2s ease,
+        background 0.2s ease,
+        border-color 0.2s ease,
+        box-shadow 0.2s ease !important;
+}
+
+
+.mic-button:hover {
+    transform: translateY(-1px) !important;
+
+    background:
+        rgba(124,92,255,0.13) !important;
+
+    border-color:
+        rgba(124,92,255,0.3) !important;
+
+    color: white;
+}
+
+
+.mic-button:active {
+    transform: scale(0.94) !important;
+}
+
+
+/* ========================================
+   SEND BUTTON
+======================================== */
+
+.input-area > button:last-child {
+
+    width: 48px;
+
+    height: 48px;
+
+    flex-shrink: 0;
+
+    padding: 0 !important;
+
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 14px !important;
+
+    border: none;
+
+    background:
+        linear-gradient(
+            135deg,
+            #7358ff,
+            #00bde8
+        );
+
+    color: white;
+
+    font-size: 0;
+
+    cursor: pointer;
+
+    box-shadow:
+        0 7px 22px rgba(88,88,255,0.22);
+
+    transition:
+        transform 0.2s ease,
+        filter 0.2s ease,
+        box-shadow 0.2s ease;
+}
+
+
+/* Create send arrow */
+
+.input-area > button:last-child::before {
+    content: "➤";
+
+    font-size: 17px;
+
+    transform:
+        translateX(1px)
+        rotate(-8deg);
+}
+
+
+.input-area > button:last-child:hover {
+
+    transform:
+        translateY(-2px)
+        scale(1.03);
+
+    filter: brightness(1.12);
+
+    box-shadow:
+        0 10px 30px rgba(88,88,255,0.35);
+}
+
+
+.input-area > button:last-child:active {
+    transform: scale(0.94);
+}
+
+
+/* ========================================
+   VOICE STATUS
+======================================== */
+
+.voice-status {
+    left: 8px;
+
+    bottom: calc(100% + 9px);
+
+    padding: 7px 11px;
+
+    border-radius: 999px;
+
+    background:
+        rgba(10,13,24,0.88);
+
+    border:
+        1px solid rgba(255,255,255,0.08);
+
+    box-shadow:
+        0 10px 30px rgba(0,0,0,0.25);
+
+    backdrop-filter: blur(15px);
+}
+
+
+/* ========================================
+   MOBILE
+======================================== */
+
+@media (max-width: 600px) {
+
+    .input-wrapper {
+        width: calc(100% - 14px);
+
+        margin:
+            5px auto
+            max(7px, env(safe-area-inset-bottom));
+    }
+
+
+    .input-area {
+        min-height: 58px;
+
+        height: 58px;
+
+        padding: 6px 7px;
+
+        gap: 6px;
+
+        border-radius: 17px;
+    }
+
+
+    #userInput {
+        height: 44px;
+
+        padding: 0 5px;
+
+        font-size: 14px;
+    }
+
+
+    .mic-button {
+        width: 44px !important;
+        height: 44px !important;
+
+        border-radius: 13px !important;
+    }
+
+
+    .input-area > button:last-child {
+
+        width: 44px;
+
+        height: 44px;
+
+        border-radius: 13px !important;
+    }
+
+
+    .input-area > button:last-child::before {
+        font-size: 16px;
+    }
+
+}
+/* ========================================
+   YUVA AI — WELCOME SCREEN
+======================================== */
+
+.welcome-screen {
+    min-height: 100%;
+
+    display: flex;
+    flex-direction: column;
+
+    align-items: center;
+    justify-content: center;
+
+    text-align: center;
+
+    padding: 40px 20px 80px;
+
+    animation: welcomeAppear 0.7s ease;
+}
+
+
+@keyframes welcomeAppear {
+    from {
+        opacity: 0;
+        transform: translateY(15px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+
+/* ORB */
+
+.welcome-orb {
+    width: 100px;
+    height: 100px;
+
+    position: relative;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    margin-bottom: 24px;
+}
+
+
+.welcome-orb-core {
+    width: 38px;
+    height: 38px;
+
+    border-radius: 50%;
+
+    background:
+        radial-gradient(
+            circle at 30% 25%,
+            white,
+            #aaa0ff 30%,
+            #6d4cff 65%,
+            #34259c
+        );
+
+    box-shadow:
+        0 0 15px rgba(255,255,255,0.7),
+        0 0 40px rgba(124,92,255,0.8),
+        0 0 75px rgba(0,217,255,0.3);
+
+    animation: welcomePulse 2.5s ease-in-out infinite;
+}
+
+
+@keyframes welcomePulse {
+    0%, 100% {
+        transform: scale(0.92);
+    }
+
+    50% {
+        transform: scale(1.08);
+    }
+}
+
+
+/* ORBIT */
+
+.welcome-orb-ring {
+    position: absolute;
+
+    border-radius: 50%;
+
+    border: 1px solid rgba(124,92,255,0.5);
+
+    pointer-events: none;
+}
+
+
+.ring-a {
+    width: 75px;
+    height: 35px;
+
+    transform: rotate(25deg);
+
+    animation:
+        welcomeRotate 4s linear infinite;
+}
+
+
+.ring-b {
+    width: 90px;
+    height: 42px;
+
+    border-color: rgba(0,217,255,0.4);
+
+    transform: rotate(-35deg);
+
+    animation:
+        welcomeRotateReverse 5s linear infinite;
+}
+
+
+@keyframes welcomeRotate {
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+
+@keyframes welcomeRotateReverse {
+    from {
+        transform: rotate(360deg);
+    }
+
+    to {
+        transform: rotate(0deg);
+    }
+}
+
+
+/* TITLE */
+
+.welcome-screen h1 {
+    margin: 0;
+
+    font-size: clamp(32px, 7vw, 46px);
+
+    font-weight: 800;
+
+    letter-spacing: 7px;
+
+    background:
+        linear-gradient(
+            100deg,
+            white,
+            #b8b1ff,
+            #7cddff
+        );
+
+    -webkit-background-clip: text;
+    background-clip: text;
+
+    color: transparent;
+}
+
+
+.welcome-subtitle {
+    margin-top: 8px;
+
+    color: #b5bdd0;
+
+    font-size: 15px;
+
+    letter-spacing: 1px;
+}
+
+
+.welcome-text {
+    margin-top: 8px;
+
+    color: #697388;
+
+    font-size: 13px;
+}
+
+
+/* QUICK ACTIONS */
+
+.quick-actions {
+    display: flex;
+
+    flex-wrap: wrap;
+
+    justify-content: center;
+
+    gap: 9px;
+
+    margin-top: 25px;
+}
+
+
+.quick-actions button {
+    padding: 10px 14px;
+
+    border-radius: 12px;
+
+    border:
+        1px solid rgba(255,255,255,0.08);
+
+    background:
+        rgba(255,255,255,0.035);
+
+    color: #aeb7c9;
+
+    font-size: 12px;
+
+    cursor: pointer;
+
+    transition:
+        transform 0.2s ease,
+        background 0.2s ease,
+        border-color 0.2s ease,
+        color 0.2s ease;
+}
+
+
+.quick-actions button:hover {
+    transform: translateY(-2px);
+
+    background:
+        rgba(124,92,255,0.10);
+
+    border-color:
+        rgba(124,92,255,0.25);
+
+    color: white;
+}
+
+
+/* MOBILE */
+
+@media (max-width: 600px) {
+
+    .welcome-screen {
+        padding:
+            25px
+            10px
+            60px;
+    }
+
+    .welcome-orb {
+        width: 85px;
+        height: 85px;
+    }
+
+    .welcome-orb-core {
+        width: 32px;
+        height: 32px;
+    }
+
+    .welcome-screen h1 {
+        font-size: 32px;
+
+        letter-spacing: 5px;
+    }
+
+    .quick-actions {
+        width: 100%;
+    }
+
+    .quick-actions button {
+        font-size: 11px;
+
+        padding: 9px 11px;
+    }
+}
