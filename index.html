@@ -97,6 +97,22 @@
             </div>
 
             <button
+                id="voiceToggle"
+                class="new-chat-button"
+                onclick="toggleVoiceOutput()"
+                title="Toggle spoken replies"
+            >
+                🔊 Voice: Off
+            </button>
+
+            <button
+                class="new-chat-button"
+                onclick="clearMemory()"
+            >
+                New Chat
+            </button>
+
+            <button
                 class="logout-button"
                 onclick="creatorLogout()"
             >
@@ -132,6 +148,15 @@
         ========================================= -->
 
         <div class="input-area">
+
+            <button
+                id="micButton"
+                class="mic-button"
+                onclick="toggleVoiceInput()"
+                title="Speak your message"
+            >
+                🎤
+            </button>
 
             <input
                 type="text"

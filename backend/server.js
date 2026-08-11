@@ -19,6 +19,21 @@ const groq = new Groq({
 
 const sessions = new Map();
 
+// How long a session stays valid without activity (in ms)
+const SESSION_TTL_MS = 24 * 60 * 60 * 1000; // 24 hours
+
+// Max number of past messages (user+ai combined) kept per session,
+// to stop the prompt from growing forever and blowing past token limits
+const MAX_HISTORY_MESSAGES = 20;
+
+function touchSession(session) {
+    session.lastActive = Date.now();
+}
+
+function isSessionExpired(session) {
+    return Date.now() - session.lastActive > SESSION_TTL_MS;
+}
+
 // ========================================
 // MIDDLEWARE
 // ========================================
@@ -104,7 +119,9 @@ app.post("/login", (req, res) => {
 
         sessions.set(token, {
             role,
-            name
+            name,
+            history: [],
+            lastActive: Date.now()
         });
 
         return res.json({
@@ -136,12 +153,16 @@ app.post("/verify-creator", (req, res) => {
 
     const session = sessions.get(token);
 
-    if (!session) {
+    if (!session || isSessionExpired(session)) {
+        if (session) sessions.delete(token);
+
         return res.json({
             success: false,
             authenticated: false
         });
     }
+
+    touchSession(session);
 
     return res.json({
         success: true,
@@ -170,6 +191,27 @@ app.post("/logout", (req, res) => {
 });
 
 // ========================================
+// CLEAR MEMORY
+// Wipes conversation history but keeps the user logged in
+// ========================================
+
+app.post("/clear-memory", (req, res) => {
+    const token =
+        req.body?.token ||
+        req.headers["x-creator-token"];
+
+    const session = sessions.get(token);
+
+    if (session) {
+        session.history = [];
+    }
+
+    return res.json({
+        success: true
+    });
+});
+
+// ========================================
 // CHAT
 // ========================================
 
@@ -184,7 +226,16 @@ app.post("/chat", async (req, res) => {
             });
         }
 
-        const session = sessions.get(token);
+        let session = sessions.get(token);
+
+        if (session && isSessionExpired(session)) {
+            sessions.delete(token);
+            session = null;
+        }
+
+        if (session) {
+            touchSession(session);
+        }
 
         const role = session?.role || "guest";
         const name = session?.name || "Guest";
@@ -338,6 +389,9 @@ You are YUVA AI.
         // GROQ REQUEST
         // ========================================
 
+        // Past turns for this session (empty for guests — they're stateless)
+        const history = session?.history || [];
+
         const completion = await groq.chat.completions.create({
             model: "llama-3.1-8b-instant",
 
@@ -346,6 +400,7 @@ You are YUVA AI.
                     role: "system",
                     content: systemPrompt
                 },
+                ...history,
                 {
                     role: "user",
                     content: message
@@ -359,6 +414,22 @@ You are YUVA AI.
         const reply =
             completion.choices?.[0]?.message?.content ||
             "I couldn't generate a response.";
+
+        // Save this turn to the session's memory (authenticated sessions only)
+        if (session) {
+            session.history.push(
+                { role: "user", content: message },
+                { role: "assistant", content: reply }
+            );
+
+            // Keep only the most recent N messages so the prompt
+            // doesn't grow forever and blow past token limits
+            if (session.history.length > MAX_HISTORY_MESSAGES) {
+                session.history = session.history.slice(
+                    session.history.length - MAX_HISTORY_MESSAGES
+                );
+            }
+        }
 
         return res.json({
             success: true,
@@ -384,6 +455,19 @@ You are YUVA AI.
 app.get("/", (req, res) => {
     res.sendFile(path.join(__dirname, "..", "index.html"));
 });
+
+// ========================================
+// CLEANUP EXPIRED SESSIONS
+// Runs hourly so memory doesn't grow forever
+// ========================================
+
+setInterval(() => {
+    for (const [token, session] of sessions.entries()) {
+        if (isSessionExpired(session)) {
+            sessions.delete(token);
+        }
+    }
+}, 60 * 60 * 1000);
 
 // ========================================
 // START SERVER

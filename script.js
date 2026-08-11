@@ -192,6 +192,8 @@ async function sendMessage() {
 
         addMessage(data.reply, "ai");
 
+        speakReply(data.reply);
+
     } catch (error) {
         console.error("Chat error:", error);
 
@@ -301,6 +303,153 @@ function escapeHTML(text) {
     div.textContent = text;
 
     return div.innerHTML;
+}
+
+// ========================================
+// VOICE INPUT (Speech-to-Text)
+// ========================================
+
+const SpeechRecognitionAPI =
+    window.SpeechRecognition ||
+    window.webkitSpeechRecognition;
+
+let recognition = null;
+let isListening = false;
+
+if (SpeechRecognitionAPI) {
+    recognition = new SpeechRecognitionAPI();
+    recognition.continuous = false;
+    recognition.interimResults = false;
+    recognition.lang = "en-US";
+
+    recognition.onstart = function () {
+        isListening = true;
+
+        const micButton = document.getElementById("micButton");
+
+        if (micButton) {
+            micButton.classList.add("listening");
+            micButton.textContent = "⏺️";
+        }
+    };
+
+    recognition.onresult = function (event) {
+        const transcript =
+            event.results[0][0].transcript;
+
+        input.value = transcript;
+    };
+
+    recognition.onerror = function (error) {
+        console.error("Speech recognition error:", error);
+    };
+
+    recognition.onend = function () {
+        isListening = false;
+
+        const micButton = document.getElementById("micButton");
+
+        if (micButton) {
+            micButton.classList.remove("listening");
+            micButton.textContent = "🎤";
+        }
+    };
+}
+
+function toggleVoiceInput() {
+    if (!recognition) {
+        addMessage(
+            "Voice input isn't supported in this browser. Try Chrome or Edge.",
+            "ai"
+        );
+        return;
+    }
+
+    if (isListening) {
+        recognition.stop();
+    } else {
+        recognition.start();
+    }
+}
+
+// ========================================
+// VOICE OUTPUT (Text-to-Speech)
+// ========================================
+
+let voiceOutputEnabled =
+    localStorage.getItem("yuva_voice_output") === "true";
+
+function updateVoiceToggleUI() {
+    const voiceToggle = document.getElementById("voiceToggle");
+
+    if (!voiceToggle) return;
+
+    voiceToggle.textContent = voiceOutputEnabled
+        ? "🔊 Voice: On"
+        : "🔊 Voice: Off";
+}
+
+function toggleVoiceOutput() {
+    voiceOutputEnabled = !voiceOutputEnabled;
+
+    localStorage.setItem(
+        "yuva_voice_output",
+        voiceOutputEnabled
+    );
+
+    updateVoiceToggleUI();
+
+    // Stop mid-speech if turning off
+    if (!voiceOutputEnabled) {
+        window.speechSynthesis.cancel();
+    }
+}
+
+function speakReply(text) {
+    if (!voiceOutputEnabled) return;
+
+    if (!("speechSynthesis" in window)) return;
+
+    // Cancel anything currently being spoken first
+    window.speechSynthesis.cancel();
+
+    const utterance = new SpeechSynthesisUtterance(text);
+
+    utterance.rate = 1;
+    utterance.pitch = 1;
+    utterance.lang = "en-US";
+
+    window.speechSynthesis.speak(utterance);
+}
+
+// ========================================
+// CLEAR MEMORY (New Chat)
+// ========================================
+
+async function clearMemory() {
+    try {
+        await fetch("/clear-memory", {
+            method: "POST",
+
+            headers: {
+                "Content-Type": "application/json"
+            },
+
+            body: JSON.stringify({
+                token: creatorToken
+            })
+        });
+    } catch (error) {
+        console.error("Clear memory error:", error);
+    }
+
+    // Wipe the visible chat window too
+    chat.innerHTML = "";
+
+    addMessage(
+        "Memory cleared. Starting fresh! 🧠✨",
+        "ai"
+    );
 }
 
 // ========================================
@@ -439,6 +588,8 @@ document.addEventListener(
         }
 
         checkExistingSession();
+
+        updateVoiceToggleUI();
     }
 );
 // ========================================
