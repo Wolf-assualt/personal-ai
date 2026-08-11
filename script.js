@@ -1,19 +1,324 @@
-// ========================================
-// YUVA AI — COMPLETE FRONTEND SCRIPT
-// ========================================
-
 const input = document.getElementById("userInput");
 const chat = document.getElementById("chat");
 
-let creatorToken =
-    localStorage.getItem("yuva_creator_token");
-
-let conversationHistory = [];
-
+let creatorToken = localStorage.getItem("yuva_creator_token");
+let currentRole = localStorage.getItem("yuva_role");
+let currentName = localStorage.getItem("yuva_name");
 
 // ========================================
-// VOICE ELEMENTS
+// CREATOR / FAMILY / FRIEND LOGIN
 // ========================================
+
+async function creatorLogin() {
+    const passwordInput = document.getElementById("creatorPassword");
+    const message = document.getElementById("loginMessage");
+
+    const password = passwordInput.value.trim();
+
+    if (!password) {
+        message.textContent = "Please enter your password.";
+        return;
+    }
+
+    message.textContent = "Checking...";
+
+    try {
+        const response = await fetch("/login", {
+            method: "POST",
+
+            headers: {
+                "Content-Type": "application/json"
+            },
+
+            body: JSON.stringify({
+                password: password
+            })
+        });
+
+        const data = await response.json();
+
+        if (!response.ok || !data.success) {
+            message.textContent =
+                data.message || "Incorrect password.";
+            return;
+        }
+
+        // Save authentication information
+        creatorToken = data.token;
+        currentRole = data.role;
+        currentName = data.name;
+
+        localStorage.setItem(
+            "yuva_creator_token",
+            creatorToken
+        );
+
+        localStorage.setItem(
+            "yuva_role",
+            currentRole
+        );
+
+        localStorage.setItem(
+            "yuva_name",
+            currentName
+        );
+
+        // Show the main application
+        document.getElementById("loginScreen").style.display =
+            "none";
+
+        document.getElementById("app").style.display =
+            "flex";
+
+        updateRoleUI();
+
+        // Greeting
+        addMessage(data.greeting, "ai");
+
+        passwordInput.value = "";
+
+    } catch (error) {
+        console.error("Login error:", error);
+
+        message.textContent =
+            "Unable to connect to YUVA AI.";
+    }
+}
+
+// ========================================
+// GUEST LOGIN
+// ========================================
+
+function continueAsGuest() {
+    creatorToken = null;
+    currentRole = "guest";
+    currentName = "Guest";
+
+    localStorage.removeItem("yuva_creator_token");
+    localStorage.removeItem("yuva_role");
+    localStorage.removeItem("yuva_name");
+
+    document.getElementById("loginScreen").style.display =
+        "none";
+
+    document.getElementById("app").style.display =
+        "flex";
+
+    updateRoleUI();
+
+    addMessage(
+        "Hi! 👋 Welcome to YUVA AI. How can I help you?",
+        "ai"
+    );
+}
+
+// ========================================
+// UPDATE ROLE DISPLAY
+// ========================================
+
+function updateRoleUI() {
+    const status = document.getElementById("status");
+
+    if (!status) return;
+
+    if (currentRole === "creator") {
+        status.textContent =
+            "👑 Creator Mode • Yuva";
+    }
+
+    else if (currentRole === "partner") {
+        status.textContent =
+            "❤️ Creator's GF/Wife";
+    }
+
+    else if (currentRole === "brother") {
+        status.textContent =
+            "👦 Vishwa • Yuva's Brother";
+    }
+
+    else if (currentRole === "friend") {
+        status.textContent =
+            "🤝 Creator's Friend";
+    }
+
+    else {
+        status.textContent =
+            "Personal AI Assistant";
+    }
+}
+
+// ========================================
+// SEND MESSAGE
+// ========================================
+
+async function sendMessage() {
+    const message = input.value.trim();
+
+    if (!message) return;
+
+    addMessage(message, "user");
+
+    input.value = "";
+
+    const typingId = addTypingMessage();
+
+    try {
+        const response = await fetch("/chat", {
+            method: "POST",
+
+            headers: {
+                "Content-Type": "application/json"
+            },
+
+            body: JSON.stringify({
+                message: message,
+                token: creatorToken
+            })
+        });
+
+        const data = await response.json();
+
+        removeTypingMessage(typingId);
+
+        if (!response.ok || !data.success) {
+            addMessage(
+                data.message ||
+                "Something went wrong.",
+                "ai"
+            );
+
+            return;
+        }
+
+        addMessage(data.reply, "ai");
+
+        speakReply(data.reply);
+
+    } catch (error) {
+        console.error("Chat error:", error);
+
+        removeTypingMessage(typingId);
+
+        addMessage(
+            "I couldn't connect to YUVA AI right now. 🧠❌",
+            "ai"
+        );
+    }
+}
+
+// ========================================
+// ENTER KEY
+// ========================================
+
+input.addEventListener("keydown", function (event) {
+    if (event.key === "Enter") {
+        event.preventDefault();
+        sendMessage();
+    }
+});
+
+// ========================================
+// ADD MESSAGE
+// ========================================
+
+function addMessage(text, type) {
+    const messageDiv = document.createElement("div");
+
+    messageDiv.className =
+        type === "user"
+            ? "message user"
+            : "message ai";
+
+    const avatar =
+        type === "user"
+            ? "👤"
+            : "🤖";
+
+    messageDiv.innerHTML = `
+        <div class="avatar">
+            ${avatar}
+        </div>
+
+        <div class="bubble">
+            ${escapeHTML(text).replace(/\n/g, "<br>")}
+        </div>
+    `;
+
+    chat.appendChild(messageDiv);
+
+    chat.scrollTop = chat.scrollHeight;
+}
+
+// ========================================
+// TYPING INDICATOR
+// ========================================
+
+function addTypingMessage() {
+    const id =
+        "typing-" +
+        Date.now();
+
+    const messageDiv =
+        document.createElement("div");
+
+    messageDiv.id = id;
+
+    messageDiv.className =
+        "message ai";
+
+    messageDiv.innerHTML = `
+        <div class="avatar">
+            🤖
+        </div>
+
+        <div class="bubble">
+            <span>Thinking...</span>
+        </div>
+    `;
+
+    chat.appendChild(messageDiv);
+
+    chat.scrollTop = chat.scrollHeight;
+
+    return id;
+}
+
+function removeTypingMessage(id) {
+    const element =
+        document.getElementById(id);
+
+    if (element) {
+        element.remove();
+    }
+}
+
+// ========================================
+// HTML SAFETY
+// ========================================
+
+function escapeHTML(text) {
+    const div =
+        document.createElement("div");
+
+    div.textContent = text;
+
+    return div.innerHTML;
+}
+
+// ========================================
+// YUVA AI — ADVANCED VOICE SYSTEM
+// ========================================
+
+const SpeechRecognitionAPI =
+    window.SpeechRecognition ||
+    window.webkitSpeechRecognition;
+
+let recognition = null;
+
+let isListening = false;
+let isSpeaking = false;
+
+let voices = [];
 
 const micButton =
     document.getElementById("micButton");
@@ -30,42 +335,48 @@ const voicePanel =
 const voiceSelect =
     document.getElementById("voiceSelect");
 
-const liveVoiceButton =
-    document.getElementById("liveVoiceButton");
+const stopSpeakingButton =
+    document.getElementById("stopSpeakingButton");
 
 
 // ========================================
-// VOICE STATE
+// VOICE STATUS UI
 // ========================================
 
-let voiceOutputEnabled =
-    localStorage.getItem("yuva_voice_output") === "true";
+function setVoiceStatus(
+    text,
+    state = "",
+    visible = true
+) {
 
-let voices = [];
+    if (!voiceStatus) return;
 
-let recognition = null;
+    if (voiceStatusText) {
+        voiceStatusText.textContent = text;
+    }
 
-let isListening = false;
-let isSpeaking = false;
+    voiceStatus.classList.remove(
+        "listening",
+        "speaking",
+        "active"
+    );
 
+    if (state) {
+        voiceStatus.classList.add(state);
+        voiceStatus.classList.add("active");
+    }
 
-// ========================================
-// LIVE VOICE STATE
-// ========================================
-
-let liveVoiceMode = false;
-let liveWaitingForReply = false;
-let liveRestartTimer = null;
+    if (visible) {
+        voiceStatus.classList.add("visible");
+    } else {
+        voiceStatus.classList.remove("visible");
+    }
+}
 
 
 // ========================================
 // SPEECH RECOGNITION
 // ========================================
-
-const SpeechRecognitionAPI =
-    window.SpeechRecognition ||
-    window.webkitSpeechRecognition;
-
 
 if (SpeechRecognitionAPI) {
 
@@ -76,6 +387,11 @@ if (SpeechRecognitionAPI) {
 
     recognition.interimResults = true;
 
+    /*
+     * Indian English is generally more
+     * comfortable for your usage.
+     */
+
     recognition.lang = "en-IN";
 
 
@@ -83,13 +399,15 @@ if (SpeechRecognitionAPI) {
 
         isListening = true;
 
+        /*
+         * Stop YUVA speaking when user
+         * starts talking.
+         */
 
-        // Stop YUVA if user starts talking
         if (
             "speechSynthesis" in window &&
             speechSynthesis.speaking
         ) {
-
             speechSynthesis.cancel();
 
             isSpeaking = false;
@@ -111,9 +429,7 @@ if (SpeechRecognitionAPI) {
 
 
         setVoiceStatus(
-            liveVoiceMode
-                ? "YUVA Live is listening..."
-                : "Listening...",
+            "Listening...",
             "listening",
             true
         );
@@ -122,19 +438,6 @@ if (SpeechRecognitionAPI) {
 
     recognition.onresult =
         function (event) {
-
-            // LIVE MODE
-            if (liveVoiceMode) {
-
-                handleLiveVoiceResult(
-                    event
-                );
-
-                return;
-            }
-
-
-            // NORMAL VOICE MODE
 
             let transcript = "";
 
@@ -154,21 +457,26 @@ if (SpeechRecognitionAPI) {
                 if (
                     event.results[i].isFinal
                 ) {
-
                     isFinal = true;
                 }
             }
 
 
-            if (
-                input &&
-                transcript.trim()
-            ) {
+            /*
+             * Show speech live in
+             * the message box.
+             */
 
+            if (input) {
                 input.value =
                     transcript.trim();
             }
 
+
+            /*
+             * Automatically send after
+             * the user finishes speaking.
+             */
 
             if (
                 isFinal &&
@@ -205,63 +513,9 @@ if (SpeechRecognitionAPI) {
                     "listening"
                 );
 
-                if (!isSpeaking) {
-
-                    micButton.textContent =
-                        "🎤";
-                }
+                micButton.textContent = "🎤";
             }
 
-
-            // In Live Mode, recover automatically
-            if (liveVoiceMode) {
-
-                if (
-                    event.error ===
-                    "not-allowed"
-                ) {
-
-                    liveVoiceMode = false;
-
-                    liveWaitingForReply = false;
-
-                    updateLiveVoiceUI();
-
-                    setVoiceStatus(
-                        "Microphone permission denied",
-                        "",
-                        true
-                    );
-
-                    return;
-                }
-
-
-                if (
-                    event.error ===
-                    "aborted"
-                ) {
-
-                    return;
-                }
-
-
-                clearTimeout(
-                    liveRestartTimer
-                );
-
-
-                liveRestartTimer =
-                    setTimeout(
-                        startLiveListening,
-                        600
-                    );
-
-                return;
-            }
-
-
-            // Normal voice mode errors
 
             if (
                 event.error ===
@@ -298,10 +552,7 @@ if (SpeechRecognitionAPI) {
             setTimeout(
                 () => {
 
-                    if (
-                        !isSpeaking &&
-                        !liveVoiceMode
-                    ) {
+                    if (!isSpeaking) {
 
                         setVoiceStatus(
                             "Ready",
@@ -311,7 +562,7 @@ if (SpeechRecognitionAPI) {
                     }
 
                 },
-                2000
+                2200
             );
         };
 
@@ -328,38 +579,17 @@ if (SpeechRecognitionAPI) {
                     "listening"
                 );
 
-                if (!isSpeaking) {
+                /*
+                 * If YUVA isn't speaking,
+                 * return to microphone icon.
+                 */
 
+                if (!isSpeaking) {
                     micButton.textContent =
                         "🎤";
                 }
             }
 
-
-            // LIVE MODE
-            if (liveVoiceMode) {
-
-                if (
-                    !liveWaitingForReply &&
-                    !isSpeaking
-                ) {
-
-                    clearTimeout(
-                        liveRestartTimer
-                    );
-
-                    liveRestartTimer =
-                        setTimeout(
-                            startLiveListening,
-                            300
-                        );
-                }
-
-                return;
-            }
-
-
-            // NORMAL MODE
 
             if (!isSpeaking) {
 
@@ -374,61 +604,7 @@ if (SpeechRecognitionAPI) {
 
 
 // ========================================
-// VOICE STATUS UI
-// ========================================
-
-function setVoiceStatus(
-    text,
-    state = "",
-    visible = true
-) {
-
-    if (!voiceStatus) return;
-
-
-    if (voiceStatusText) {
-
-        voiceStatusText.textContent =
-            text;
-    }
-
-
-    voiceStatus.classList.remove(
-        "listening",
-        "speaking",
-        "active"
-    );
-
-
-    if (state) {
-
-        voiceStatus.classList.add(
-            state
-        );
-
-        voiceStatus.classList.add(
-            "active"
-        );
-    }
-
-
-    if (visible) {
-
-        voiceStatus.classList.add(
-            "visible"
-        );
-
-    } else {
-
-        voiceStatus.classList.remove(
-            "visible"
-        );
-    }
-}
-
-
-// ========================================
-// NORMAL VOICE INPUT
+// START / STOP LISTENING
 // ========================================
 
 function toggleVoiceInput() {
@@ -444,14 +620,6 @@ function toggleVoiceInput() {
     }
 
 
-    if (liveVoiceMode) {
-
-        stopLiveVoice();
-
-        return;
-    }
-
-
     if (isListening) {
 
         recognition.stop();
@@ -459,6 +627,10 @@ function toggleVoiceInput() {
         return;
     }
 
+
+    /*
+     * Stop YUVA if currently speaking.
+     */
 
     stopSpeaking();
 
@@ -470,7 +642,7 @@ function toggleVoiceInput() {
     } catch (error) {
 
         console.log(
-            "Recognition start error:",
+            "Recognition could not start:",
             error
         );
     }
@@ -478,8 +650,14 @@ function toggleVoiceInput() {
 
 
 // ========================================
-// VOICE OUTPUT UI
+// VOICE OUTPUT
 // ========================================
+
+let voiceOutputEnabled =
+    localStorage.getItem(
+        "yuva_voice_output"
+    ) === "true";
+
 
 function updateVoiceToggleUI() {
 
@@ -487,7 +665,6 @@ function updateVoiceToggleUI() {
         document.getElementById(
             "voiceToggle"
         );
-
 
     if (!voiceToggle) return;
 
@@ -497,6 +674,11 @@ function updateVoiceToggleUI() {
             ? "🔊 Voice: On"
             : "🔊 Voice: Off";
 
+
+    /*
+     * Show voice settings only
+     * when voice output is enabled.
+     */
 
     if (voicePanel) {
 
@@ -508,10 +690,6 @@ function updateVoiceToggleUI() {
 }
 
 
-// ========================================
-// TOGGLE VOICE OUTPUT
-// ========================================
-
 function toggleVoiceOutput() {
 
     voiceOutputEnabled =
@@ -521,8 +699,6 @@ function toggleVoiceOutput() {
     localStorage.setItem(
         "yuva_voice_output",
         voiceOutputEnabled
-            ? "true"
-            : "false"
     );
 
 
@@ -533,21 +709,16 @@ function toggleVoiceOutput() {
 
         stopSpeaking();
 
-
         setVoiceStatus(
             "Voice output disabled",
             "",
             true
         );
 
-
         setTimeout(
             () => {
 
-                if (
-                    !isListening &&
-                    !isSpeaking
-                ) {
+                if (!isListening) {
 
                     setVoiceStatus(
                         "Ready",
@@ -557,35 +728,7 @@ function toggleVoiceOutput() {
                 }
 
             },
-            1200
-        );
-
-    } else {
-
-        setVoiceStatus(
-            "Voice output enabled",
-            "",
-            true
-        );
-
-
-        setTimeout(
-            () => {
-
-                if (
-                    !isListening &&
-                    !isSpeaking
-                ) {
-
-                    setVoiceStatus(
-                        "Ready",
-                        "",
-                        false
-                    );
-                }
-
-            },
-            1200
+            1500
         );
     }
 }
@@ -600,7 +743,6 @@ function loadVoices() {
     if (
         !("speechSynthesis" in window)
     ) {
-
         return;
     }
 
@@ -627,12 +769,10 @@ function loadVoices() {
             "option"
         );
 
-
     defaultOption.value = "";
 
     defaultOption.textContent =
         "✨ Default Voice";
-
 
     voiceSelect.appendChild(
         defaultOption
@@ -646,7 +786,6 @@ function loadVoices() {
                 document.createElement(
                     "option"
                 );
-
 
             option.value = index;
 
@@ -680,6 +819,11 @@ if (
     loadVoices();
 
 
+    /*
+     * Chrome loads voices
+     * asynchronously.
+     */
+
     window.speechSynthesis
         .onvoiceschanged =
         loadVoices;
@@ -702,6 +846,10 @@ if (voiceSelect) {
             );
 
 
+            /*
+             * Small confirmation.
+             */
+
             setVoiceStatus(
                 "Voice selected",
                 "",
@@ -712,10 +860,7 @@ if (voiceSelect) {
             setTimeout(
                 () => {
 
-                    if (
-                        !isListening &&
-                        !isSpeaking
-                    ) {
+                    if (!isSpeaking) {
 
                         setVoiceStatus(
                             "Ready",
@@ -725,7 +870,7 @@ if (voiceSelect) {
                     }
 
                 },
-                1000
+                1200
             );
         }
     );
@@ -739,26 +884,28 @@ if (voiceSelect) {
 function speakReply(text) {
 
     if (!voiceOutputEnabled) {
-
-        // In Live Mode, voice output is
-        // automatically required.
-        if (!liveVoiceMode) {
-
-            return;
-        }
+        return;
     }
 
 
     if (
         !("speechSynthesis" in window)
     ) {
-
         return;
     }
 
 
+    /*
+     * Cancel anything currently
+     * being spoken.
+     */
+
     window.speechSynthesis.cancel();
 
+
+    /*
+     * Clean markdown before speaking.
+     */
 
     const cleanText =
         text
@@ -777,15 +924,7 @@ function speakReply(text) {
             .trim();
 
 
-    if (!cleanText) {
-
-        if (liveVoiceMode) {
-
-            continueLiveConversation();
-        }
-
-        return;
-    }
+    if (!cleanText) return;
 
 
     const utterance =
@@ -793,6 +932,10 @@ function speakReply(text) {
             cleanText
         );
 
+
+    /*
+     * Selected voice.
+     */
 
     const selectedVoice =
         voiceSelect
@@ -810,12 +953,21 @@ function speakReply(text) {
     }
 
 
+    /*
+     * Natural speech settings.
+     */
+
     utterance.rate = 1;
 
     utterance.pitch = 1;
 
     utterance.volume = 1;
 
+
+    /*
+     * Use selected voice language
+     * if available.
+     */
 
     if (
         utterance.voice &&
@@ -878,18 +1030,11 @@ function speakReply(text) {
             }
 
 
-            if (liveVoiceMode) {
-
-                continueLiveConversation();
-
-            } else {
-
-                setVoiceStatus(
-                    "Ready",
-                    "",
-                    false
-                );
-            }
+            setVoiceStatus(
+                "Ready",
+                "",
+                false
+            );
         };
 
 
@@ -916,18 +1061,11 @@ function speakReply(text) {
             }
 
 
-            if (liveVoiceMode) {
-
-                continueLiveConversation();
-
-            } else {
-
-                setVoiceStatus(
-                    "Ready",
-                    "",
-                    false
-                );
-            }
+            setVoiceStatus(
+                "Ready",
+                "",
+                false
+            );
         };
 
 
@@ -938,7 +1076,7 @@ function speakReply(text) {
 
 
 // ========================================
-// STOP SPEAKING
+// STOP YUVA SPEAKING
 // ========================================
 
 function stopSpeaking() {
@@ -960,818 +1098,216 @@ function stopSpeaking() {
             "speaking"
         );
 
-
         if (!isListening) {
-
             micButton.textContent =
                 "🎤";
         }
     }
+
+
+    setVoiceStatus(
+        "Ready",
+        "",
+        false
+    );
 }
-
-
 // ========================================
-// 🔴 LIVE VOICE MODE
+// CLEAR MEMORY (New Chat)
 // ========================================
 
-function updateLiveVoiceUI() {
+async function clearMemory() {
+    try {
+        await fetch("/clear-memory", {
+            method: "POST",
 
-    if (!liveVoiceButton) return;
+            headers: {
+                "Content-Type": "application/json"
+            },
 
-
-    if (liveVoiceMode) {
-
-        liveVoiceButton.textContent =
-            "🔴 Live: On";
-
-        liveVoiceButton.classList.add(
-            "live-active"
-        );
-
-    } else {
-
-        liveVoiceButton.textContent =
-            "🔴 Live";
-
-        liveVoiceButton.classList.remove(
-            "live-active"
-        );
+            body: JSON.stringify({
+                token: creatorToken
+            })
+        });
+    } catch (error) {
+        console.error("Clear memory error:", error);
     }
+
+    // Wipe the visible chat window too
+    chat.innerHTML = "";
+
+    addMessage(
+        "Memory cleared. Starting fresh! 🧠✨",
+        "ai"
+    );
 }
 
+// ========================================
+// LOGOUT
+// ========================================
+
+async function creatorLogout() {
+    try {
+        if (creatorToken) {
+            await fetch("/logout", {
+                method: "POST",
+
+                headers: {
+                    "Content-Type": "application/json"
+                },
+
+                body: JSON.stringify({
+                    token: creatorToken
+                })
+            });
+        }
+    } catch (error) {
+        console.error("Logout error:", error);
+    }
+
+    creatorToken = null;
+    currentRole = null;
+    currentName = null;
+
+    localStorage.removeItem(
+        "yuva_creator_token"
+    );
+
+    localStorage.removeItem(
+        "yuva_role"
+    );
+
+    localStorage.removeItem(
+        "yuva_name"
+    );
+
+    location.reload();
+}
 
 // ========================================
-// START LIVE MODE
+// CHECK EXISTING SESSION
 // ========================================
 
-function startLiveVoice() {
-
-    if (!recognition) {
-
-        setVoiceStatus(
-            "Live voice isn't supported in this browser",
-            "",
-            true
-        );
-
+async function checkExistingSession() {
+    if (!creatorToken) {
         return;
     }
 
+    try {
+        const response = await fetch(
+            "/verify-creator",
+            {
+                method: "POST",
 
-    /*
-     * Live mode needs voice output.
-     * Automatically enable it.
-     */
+                headers: {
+                    "Content-Type": "application/json"
+                },
 
-    if (!voiceOutputEnabled) {
-
-        voiceOutputEnabled = true;
-
-        localStorage.setItem(
-            "yuva_voice_output",
-            "true"
+                body: JSON.stringify({
+                    token: creatorToken
+                })
+            }
         );
+
+        const data = await response.json();
+
+        if (
+            data.success &&
+            data.authenticated
+        ) {
+            currentRole = data.role;
+            currentName = data.name;
+
+            localStorage.setItem(
+                "yuva_role",
+                currentRole
+            );
+
+            localStorage.setItem(
+                "yuva_name",
+                currentName
+            );
+
+            document.getElementById(
+                "loginScreen"
+            ).style.display = "none";
+
+            document.getElementById(
+                "app"
+            ).style.display = "flex";
+
+            updateRoleUI();
+
+        } else {
+            creatorToken = null;
+
+            localStorage.removeItem(
+                "yuva_creator_token"
+            );
+
+            localStorage.removeItem(
+                "yuva_role"
+            );
+
+            localStorage.removeItem(
+                "yuva_name"
+            );
+        }
+
+    } catch (error) {
+        console.error(
+            "Session check failed:",
+            error
+        );
+    }
+}
+
+// ========================================
+// INITIALIZE
+// ========================================
+
+document.addEventListener(
+    "DOMContentLoaded",
+    function () {
+
+        const app =
+            document.getElementById("app");
+
+        if (app) {
+            app.style.display = "none";
+        }
+
+        checkExistingSession();
 
         updateVoiceToggleUI();
     }
-
-
-    liveVoiceMode = true;
-
-    liveWaitingForReply = false;
-
-
-    updateLiveVoiceUI();
-
-
-    stopSpeaking();
-
-
-    setVoiceStatus(
-        "YUVA Live is listening...",
-        "listening",
-        true
-    );
-
-
-    startLiveListening();
-}
-
-
+);
 // ========================================
-// STOP LIVE MODE
+// CURSOR / TOUCH GLOW
 // ========================================
 
-function stopLiveVoice() {
+const cursorGlow =
+    document.getElementById("cursorGlow");
 
-    liveVoiceMode = false;
+if (cursorGlow) {
 
-    liveWaitingForReply = false;
-
-
-    clearTimeout(
-        liveRestartTimer
-    );
-
-
-    if (recognition) {
-
-        try {
-
-            recognition.abort();
-
-        } catch (error) {
-
-            console.log(error);
-        }
-    }
-
-
-    stopSpeaking();
-
-
-    updateLiveVoiceUI();
-
-
-    setVoiceStatus(
-        "Live mode stopped",
-        "",
-        true
-    );
-
-
-    setTimeout(
-        () => {
-
-            if (!liveVoiceMode) {
-
-                setVoiceStatus(
-                    "Ready",
-                    "",
-                    false
-                );
-            }
-
-        },
-        1200
-    );
-}
-
-
-// ========================================
-// TOGGLE LIVE MODE
-// ========================================
-
-function toggleLiveVoice() {
-
-    if (liveVoiceMode) {
-
-        stopLiveVoice();
-
-    } else {
-
-        startLiveVoice();
-    }
-}
-
-
-// ========================================
-// START LIVE LISTENING
-// ========================================
-
-function startLiveListening() {
-
-    if (!liveVoiceMode) return;
-
-    if (isListening) return;
-
-    if (liveWaitingForReply) return;
-
-    try {
-
-        recognition.start();
-
-    } catch (error) {
-
-        console.log(
-            "Live recognition start:",
-            error
-        );
-
-
-        clearTimeout(
-            liveRestartTimer
-        );
-
-
-        liveRestartTimer =
-            setTimeout(
-                startLiveListening,
-                500
-            );
-    }
-}
-
-
-// ========================================
-// LIVE SPEECH RESULT
-// ========================================
-
-function handleLiveVoiceResult(event) {
-
-    let transcript = "";
-
-    let finalText = "";
-
-
-    for (
-        let i = event.resultIndex;
-        i < event.results.length;
-        i++
-    ) {
-
-        const result =
-            event.results[i];
-
-
-        const text =
-            result[0].transcript;
-
-
-        transcript += text;
-
-
-        if (result.isFinal) {
-
-            finalText += text;
-        }
-    }
-
-
-    if (
-        input &&
-        transcript.trim()
-    ) {
-
-        input.value =
-            transcript.trim();
-    }
-
-
-    if (
-        finalText.trim() &&
-        !liveWaitingForReply
-    ) {
-
-        liveWaitingForReply = true;
-
-
-        input.value =
-            finalText.trim();
-
-
-        setVoiceStatus(
-            "YUVA is thinking...",
-            "speaking",
-            true
-        );
-
-
-        sendMessage();
-    }
-}
-
-
-// ========================================
-// CONTINUE LIVE CONVERSATION
-// ========================================
-
-function continueLiveConversation() {
-
-    if (!liveVoiceMode) return;
-
-
-    liveWaitingForReply = false;
-
-
-    setVoiceStatus(
-        "YUVA Live is listening...",
-        "listening",
-        true
-    );
-
-
-    clearTimeout(
-        liveRestartTimer
-    );
-
-
-    liveRestartTimer =
-        setTimeout(
-            startLiveListening,
-            400
-        );
-}
-
-
-// ========================================
-// SEND MESSAGE
-// ========================================
-
-async function sendMessage() {
-
-    const message =
-        input.value.trim();
-
-
-    if (!message) return;
-
-
-    // Stop listening before sending
-    if (isListening && recognition) {
-
-        try {
-
-            recognition.stop();
-
-        } catch (error) {
-
-            console.log(error);
-        }
-    }
-
-
-    input.value = "";
-
-
-    addMessage(
-        message,
-        "user"
-    );
-
-
-    conversationHistory.push({
-        role: "user",
-        content: message
-    });
-
-
-    const typing =
-        document.createElement(
-            "div"
-        );
-
-
-    typing.className =
-        "message ai";
-
-
-    typing.innerHTML = `
-        <div class="avatar">🤖</div>
-        <div class="bubble typing">
-            YUVA is thinking...
-        </div>
-    `;
-
-
-    chat.appendChild(
-        typing
-    );
-
-
-    chat.scrollTop =
-        chat.scrollHeight;
-
-
-    try {
-
-        const response =
-            await fetch(
-                "/chat",
-                {
-                    method: "POST",
-
-                    headers: {
-                        "Content-Type":
-                            "application/json",
-
-                        ...(creatorToken
-                            ? {
-                                "Authorization":
-                                    `Bearer ${creatorToken}`
-                            }
-                            : {})
-                    },
-
-                    body: JSON.stringify({
-                        message: message,
-
-                        history:
-                            conversationHistory
-                    })
-                }
-            );
-
-
-        const data =
-            await response.json();
-
-
-        typing.remove();
-
-
-        if (!response.ok) {
-
-            addMessage(
-                data.error ||
-                "Something went wrong.",
-                "ai"
-            );
-
-
-            if (liveVoiceMode) {
-
-                liveWaitingForReply =
-                    false;
-
-                continueLiveConversation();
-            }
-
-
-            return;
-        }
-
-
-        addMessage(
-            data.reply,
-            "ai"
-        );
-
-
-        conversationHistory.push({
-            role: "assistant",
-            content: data.reply
-        });
-
-
-        /*
-         * Speak the reply.
-         */
-
-        speakReply(
-            data.reply
-        );
-
-
-        /*
-         * If voice output is disabled
-         * and Live Mode is active,
-         * speakReply will still work
-         * because Live Mode requires voice.
-         */
-
-        if (
-            liveVoiceMode &&
-            !isSpeaking
-        ) {
-
-            continueLiveConversation();
-        }
-
-
-    } catch (error) {
-
-        console.error(
-            "Chat error:",
-            error
-        );
-
-
-        typing.remove();
-
-
-        addMessage(
-            "Unable to connect to YUVA AI.",
-            "ai"
-        );
-
-
-        if (liveVoiceMode) {
-
-            liveWaitingForReply =
-                false;
-
-            continueLiveConversation();
-        }
-    }
-}
-
-
-// ========================================
-// ADD MESSAGE
-// ========================================
-
-function addMessage(
-    text,
-    sender
-) {
-
-    const message =
-        document.createElement(
-            "div"
-        );
-
-
-    message.className =
-        `message ${sender}`;
-
-
-    const avatar =
-        document.createElement(
-            "div"
-        );
-
-
-    avatar.className =
-        "avatar";
-
-
-    avatar.textContent =
-        sender === "ai"
-            ? "🤖"
-            : "👤";
-
-
-    const bubble =
-        document.createElement(
-            "div"
-        );
-
-
-    bubble.className =
-        "bubble";
-
-
-    bubble.textContent =
-        text;
-
-
-    message.appendChild(
-        avatar
-    );
-
-
-    message.appendChild(
-        bubble
-    );
-
-
-    chat.appendChild(
-        message
-    );
-
-
-    chat.scrollTop =
-        chat.scrollHeight;
-}
-
-
-// ========================================
-// NEW CHAT
-// ========================================
-
-function clearMemory() {
-
-    conversationHistory = [];
-
-
-    chat.innerHTML = `
-        <div class="message ai">
-
-            <div class="avatar">
-                🤖
-            </div>
-
-            <div class="bubble">
-                Hi! I'm YUVA AI. How can I help you?
-            </div>
-
-        </div>
-    `;
-
-
-    input.value = "";
-
-
-    if (liveVoiceMode) {
-
-        liveWaitingForReply =
-            false;
-    }
-}
-
-
-// ========================================
-// CREATOR LOGIN
-// ========================================
-
-async function creatorLogin() {
-
-    const password =
-        document.getElementById(
-            "creatorPassword"
-        ).value;
-
-
-    const message =
-        document.getElementById(
-            "loginMessage"
-        );
-
-
-    if (!password) {
-
-        message.textContent =
-            "Please enter your password.";
-
-        return;
-    }
-
-
-    try {
-
-        const response =
-            await fetch(
-                "/creator-login",
-                {
-                    method: "POST",
-
-                    headers: {
-                        "Content-Type":
-                            "application/json"
-                    },
-
-                    body: JSON.stringify({
-                        password:
-                            password
-                    })
-                }
-            );
-
-
-        const data =
-            await response.json();
-
-
-        if (!response.ok) {
-
-            message.textContent =
-                data.error ||
-                "Login failed.";
-
-            return;
-        }
-
-
-        creatorToken =
-            data.token;
-
-
-        localStorage.setItem(
-            "yuva_creator_token",
-            creatorToken
-        );
-
-
-        document.getElementById(
-            "loginScreen"
-        ).style.display =
-            "none";
-
-
-        document.getElementById(
-            "app"
-        ).style.display =
-            "flex";
-
-
-    } catch (error) {
-
-        console.error(
-            error
-        );
-
-
-        message.textContent =
-            "Unable to connect to server.";
-    }
-}
-
-
-// ========================================
-// GUEST LOGIN
-// ========================================
-
-function continueAsGuest() {
-
-    creatorToken = null;
-
-
-    localStorage.removeItem(
-        "yuva_creator_token"
-    );
-
-
-    document.getElementById(
-        "loginScreen"
-    ).style.display =
-        "none";
-
-
-    document.getElementById(
-        "app"
-    ).style.display =
-        "flex";
-}
-
-
-// ========================================
-// CREATOR LOGOUT
-// ========================================
-
-function creatorLogout() {
-
-    stopLiveVoice();
-
-    stopSpeaking();
-
-
-    creatorToken = null;
-
-
-    localStorage.removeItem(
-        "yuva_creator_token"
-    );
-
-
-    document.getElementById(
-        "app"
-    ).style.display =
-        "none";
-
-
-    document.getElementById(
-        "loginScreen"
-    ).style.display =
-        "flex";
-}
-
-
-// ========================================
-// ENTER KEY
-// ========================================
-
-if (input) {
-
-    input.addEventListener(
-        "keydown",
+    document.addEventListener(
+        "pointermove",
         function (event) {
 
-            if (
-                event.key === "Enter"
-            ) {
+            cursorGlow.style.left =
+                event.clientX + "px";
 
-                event.preventDefault();
+            cursorGlow.style.top =
+                event.clientY + "px";
 
-                sendMessage();
-            }
+            cursorGlow.style.opacity = "1";
         }
     );
-}
 
-
-// ========================================
-// INITIALIZATION
-// ========================================
-
-updateVoiceToggleUI();
-
-updateLiveVoiceUI();
-
-
-// ========================================
-// RESTORE LOGIN STATE
-// ========================================
-
-if (creatorToken) {
-
-    document.getElementById(
-        "loginScreen"
-    ).style.display =
-        "none";
-
-    document.getElementById(
-        "app"
-    ).style.display =
-        "flex";
+    document.addEventListener(
+        "pointerleave",
+        function () {
+            cursorGlow.style.opacity = "0";
+        }
+    );
 }
