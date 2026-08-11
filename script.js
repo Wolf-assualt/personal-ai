@@ -227,67 +227,115 @@ input.addEventListener("keydown", function (event) {
 // ADD MESSAGE
 // ========================================
 
+// ========================================
+// ADD MESSAGE
+// ========================================
+
 function addMessage(text, type) {
 
-    const messageDiv =
-        document.createElement("div");
+    const messageDiv = document.createElement("div");
 
     messageDiv.className =
         type === "user"
             ? "message user"
             : "message ai";
 
-    if (type === "user") {
+    const avatar =
+        type === "user"
+            ? "👤"
+            : "🤖";
+
+
+    // AI MESSAGE
+    if (type === "ai") {
 
         messageDiv.innerHTML = `
-            <div class="avatar user-avatar">
-                👤
+            <div class="avatar">
+                ${avatar}
             </div>
 
-            <div class="message-content">
+            <div class="bubble">
 
-                <div class="message-name">
-                    You
-                </div>
-
-                <div class="bubble">
+                <div class="message-text">
                     ${escapeHTML(text).replace(/\n/g, "<br>")}
                 </div>
+
+                <button
+                    class="copy-button"
+                    type="button"
+                    onclick="copyMessage(this)"
+                    title="Copy response"
+                >
+                    📋
+                </button>
 
             </div>
         `;
 
-    } else {
-
-        messageDiv.innerHTML = `
-            <div class="avatar ai-avatar">
-
-                <div class="chat-orb">
-                    <div class="chat-orb-core"></div>
-                    <div class="chat-orb-ring orb-ring-one"></div>
-                    <div class="chat-orb-ring orb-ring-two"></div>
-                </div>
-
-            </div>
-
-            <div class="message-content">
-
-                <div class="message-name ai-name">
-                    YUVA AI
-                </div>
-
-                <div class="bubble">
-                    ${escapeHTML(text).replace(/\n/g, "<br>")}
-                </div>
-
-            </div>
-        `;
     }
+
+
+    // USER MESSAGE
+    else {
+
+        messageDiv.innerHTML = `
+            <div class="avatar">
+                ${avatar}
+            </div>
+
+            <div class="bubble">
+                ${escapeHTML(text).replace(/\n/g, "<br>")}
+            </div>
+        `;
+
+    }
+
 
     chat.appendChild(messageDiv);
 
-    chat.scrollTop =
-        chat.scrollHeight;
+    chat.scrollTop = chat.scrollHeight;
+}
+
+// ========================================
+// COPY AI MESSAGE
+// ========================================
+
+function copyMessage(button) {
+
+    const messageText =
+        button
+            .parentElement
+            .querySelector(".message-text")
+            .innerText;
+
+    navigator.clipboard.writeText(messageText)
+        .then(() => {
+
+            const original =
+                button.textContent;
+
+            button.textContent = "✓";
+
+            button.classList.add("copied");
+
+            setTimeout(() => {
+
+                button.textContent =
+                    original;
+
+                button.classList.remove("copied");
+
+            }, 1500);
+
+        })
+        .catch(error => {
+
+            console.error(
+                "Copy failed:",
+                error
+            );
+
+        });
 }
 
 // ========================================

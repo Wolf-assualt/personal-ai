@@ -2949,3 +2949,103 @@ body::before {
         padding: 9px 11px;
     }
 }
+/* ========================================
+   AI MESSAGE COPY BUTTON
+======================================== */
+
+.bubble {
+    position: relative;
+}
+
+.copy-button {
+    position: absolute;
+
+    right: 8px;
+    bottom: 7px;
+
+    width: 30px;
+    height: 30px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 0;
+
+    border-radius: 9px;
+
+    border: 1px solid rgba(255, 255, 255, 0.07);
+
+    background: rgba(255, 255, 255, 0.045);
+
+    color: #8994aa;
+
+    cursor: pointer;
+
+    opacity: 0;
+
+    transform: translateY(3px);
+
+    transition:
+        opacity 0.2s ease,
+        transform 0.2s ease,
+        background 0.2s ease,
+        color 0.2s ease;
+}
+
+
+/* Show copy button when hovering AI message */
+
+.message.ai .bubble:hover .copy-button {
+    opacity: 1;
+
+    transform: translateY(0);
+}
+
+
+/* Hover */
+
+.copy-button:hover {
+    background: rgba(124, 92, 255, 0.15);
+
+    border-color: rgba(124, 92, 255, 0.25);
+
+    color: white;
+}
+
+
+/* Successfully copied */
+
+.copy-button.copied {
+    color: #50e3a4;
+
+    border-color: rgba(80, 227, 164, 0.25);
+
+    background: rgba(80, 227, 164, 0.08);
+}
+
+
+/* Make room for the button */
+
+.message.ai .message-text {
+    padding-right: 35px;
+}
+
+
+/* ========================================
+   MOBILE
+======================================== */
+
+@media (max-width: 600px) {
+
+    .message.ai .copy-button {
+        opacity: 0.7;
+
+        transform: none;
+    }
+
+    .copy-button {
+        width: 28px;
+        height: 28px;
+    }
+}
