@@ -1,39 +1,129 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
 
     <title>YUVA AI</title>
 
-    <link rel="stylesheet" href="style.css">
+    <link
+        rel="stylesheet"
+        href="style.css"
+    >
 </head>
 
 <body>
 
-    <div class="app">
+    <!-- ========================================
+         CREATOR LOGIN SCREEN
+    ========================================= -->
+
+    <div id="loginScreen">
+
+        <div class="login-box">
+
+            <div class="login-logo">
+                👑
+            </div>
+
+            <h1>YUVA AI</h1>
+
+            <p>Creator Access</p>
+
+            <input
+                type="password"
+                id="creatorPassword"
+                placeholder="Enter creator password"
+                autocomplete="current-password"
+            >
+
+            <button
+                type="button"
+                onclick="creatorLogin()"
+            >
+                Enter Creator Mode
+            </button>
+
+            <div id="loginMessage"></div>
+
+            <button
+                type="button"
+                class="guest-button"
+                onclick="continueAsGuest()"
+            >
+                Continue as Guest
+            </button>
+
+        </div>
+
+    </div>
+
+
+    <!-- ========================================
+         MAIN YUVA AI APP
+    ========================================= -->
+
+    <div
+        class="app"
+        id="app"
+    >
+
+        <!-- HEADER -->
 
         <header>
-            <div class="logo">🤖</div>
 
-            <div>
-                <h1>YUVA AI</h1>
-                <p>Your personal AI assistant</p>
+            <div class="logo">
+                🤖
             </div>
+
+            <div class="header-info">
+
+                <h1>YUVA AI</h1>
+
+                <p id="status">
+                    Personal AI Assistant
+                </p>
+
+            </div>
+
+            <button
+                type="button"
+                class="logout-button"
+                onclick="creatorLogout()"
+            >
+                Logout
+            </button>
+
         </header>
+
+
+        <!-- CHAT -->
 
         <main id="chat">
 
             <div class="message ai">
-                <div class="avatar">🤖</div>
+
+                <div class="avatar">
+                    🤖
+                </div>
 
                 <div class="bubble">
-                    Hey! I'm YUVA AI 👋<br>
-                    How can I help you today?
+                    Hello! I'm YUVA AI. 👋
+                    <br><br>
+                    How can I help you?
                 </div>
+
             </div>
 
         </main>
+
+
+        <!-- MESSAGE INPUT -->
 
         <div class="input-area">
 
@@ -44,7 +134,11 @@
                 autocomplete="off"
             >
 
-            <button onclick="sendMessage()">
+            <button
+                type="button"
+                onclick="sendMessage()"
+                aria-label="Send message"
+            >
                 ➤
             </button>
 
@@ -52,7 +146,11 @@
 
     </div>
 
+
+    <!-- JAVASCRIPT -->
+
     <script src="script.js"></script>
 
 </body>
+
 </html>
