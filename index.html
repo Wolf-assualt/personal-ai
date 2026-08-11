@@ -1,31 +1,23 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
-
-    <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1.0"
-    >
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <title>YUVA AI</title>
 
-    <link
-        rel="stylesheet"
-        href="style.css"
-    >
+    <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
 
     <!-- ========================================
-         CREATOR LOGIN SCREEN
+         LOGIN SCREEN
     ========================================= -->
 
-    <div id="loginScreen">
+    <div id="loginScreen" class="login-screen">
 
-        <div class="login-box">
+        <div class="login-card">
 
             <div class="login-logo">
                 👑
@@ -33,26 +25,32 @@
 
             <h1>YUVA AI</h1>
 
-            <p>Creator Access</p>
+            <p class="login-subtitle">
+                Personal AI Assistant
+            </p>
+
+            <p class="login-description">
+                Enter your access password
+            </p>
 
             <input
                 type="password"
                 id="creatorPassword"
-                placeholder="Enter creator password"
+                placeholder="Enter password"
                 autocomplete="current-password"
             >
 
-            <button
-                type="button"
-                onclick="creatorLogin()"
-            >
-                Enter Creator Mode
+            <button onclick="creatorLogin()">
+                Enter YUVA
             </button>
 
-            <div id="loginMessage"></div>
+            <p id="loginMessage" class="login-message"></p>
+
+            <div class="guest-divider">
+                <span>or</span>
+            </div>
 
             <button
-                type="button"
                 class="guest-button"
                 onclick="continueAsGuest()"
             >
@@ -65,34 +63,26 @@
 
 
     <!-- ========================================
-         MAIN YUVA AI APP
+         MAIN AI APPLICATION
     ========================================= -->
 
-    <div
-        class="app"
-        id="app"
-    >
+    <div id="app" class="app">
 
-        <!-- HEADER -->
+        <header class="topbar">
 
-        <header>
+            <div class="brand">
+                <span class="brand-icon">🤖</span>
 
-            <div class="logo">
-                🤖
-            </div>
+                <div>
+                    <h2>YUVA AI</h2>
 
-            <div class="header-info">
-
-                <h1>YUVA AI</h1>
-
-                <p id="status">
-                    Personal AI Assistant
-                </p>
-
+                    <span id="status">
+                        Personal AI Assistant
+                    </span>
+                </div>
             </div>
 
             <button
-                type="button"
                 class="logout-button"
                 onclick="creatorLogout()"
             >
@@ -102,9 +92,11 @@
         </header>
 
 
-        <!-- CHAT -->
+        <!-- ========================================
+             CHAT
+        ========================================= -->
 
-        <main id="chat">
+        <main id="chat" class="chat">
 
             <div class="message ai">
 
@@ -113,9 +105,7 @@
                 </div>
 
                 <div class="bubble">
-                    Hello! I'm YUVA AI. 👋
-                    <br><br>
-                    How can I help you?
+                    Hi! I'm YUVA AI. How can I help you?
                 </div>
 
             </div>
@@ -123,23 +113,21 @@
         </main>
 
 
-        <!-- MESSAGE INPUT -->
+        <!-- ========================================
+             INPUT AREA
+        ========================================= -->
 
         <div class="input-area">
 
             <input
                 type="text"
                 id="userInput"
-                placeholder="Ask YUVA AI anything..."
+                placeholder="Message YUVA AI..."
                 autocomplete="off"
             >
 
-            <button
-                type="button"
-                onclick="sendMessage()"
-                aria-label="Send message"
-            >
-                ➤
+            <button onclick="sendMessage()">
+                Send
             </button>
 
         </div>
@@ -147,10 +135,7 @@
     </div>
 
 
-    <!-- JAVASCRIPT -->
-
     <script src="script.js"></script>
 
 </body>
-
 </html>
