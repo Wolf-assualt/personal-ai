@@ -82,44 +82,68 @@
 
     <div id="app" class="app">
 
-        <header class="topbar">
+       <header class="topbar">
 
-            <div class="brand">
-                <span class="brand-icon">🤖</span>
+    <!-- YUVA BRAND -->
+    <div class="brand">
 
-                <div>
-                    <h2>YUVA AI</h2>
+        <div class="brand-orb">
+            <div class="mini-orb-core"></div>
+            <div class="mini-orb-ring ring-a"></div>
+            <div class="mini-orb-ring ring-b"></div>
+        </div>
 
-                    <span id="status">
-                        Personal AI Assistant
-                    </span>
-                </div>
+        <div class="brand-info">
+            <div class="brand-title-row">
+                <h2>YUVA AI</h2>
+
+                <span class="online-badge">
+                    <span></span>
+                    ONLINE
+                </span>
             </div>
 
-            <button
-                id="voiceToggle"
-                class="new-chat-button"
-                onclick="toggleVoiceOutput()"
-                title="Toggle spoken replies"
-            >
-                🔊 Voice: Off
-            </button>
+            <span id="status">
+                Personal AI Assistant
+            </span>
+        </div>
 
-            <button
-                class="new-chat-button"
-                onclick="clearMemory()"
-            >
-                New Chat
-            </button>
+    </div>
 
-            <button
-                class="logout-button"
-                onclick="creatorLogout()"
-            >
-                Logout
-            </button>
 
-        </header>
+    <!-- HEADER ACTIONS -->
+    <div class="topbar-actions">
+
+        <button
+            id="voiceToggle"
+            class="topbar-button"
+            onclick="toggleVoiceOutput()"
+            title="Toggle spoken replies"
+        >
+            🔊
+            <span>Voice</span>
+        </button>
+
+        <button
+            class="topbar-button"
+            onclick="clearMemory()"
+            title="Start a new conversation"
+        >
+            ＋
+            <span>New Chat</span>
+        </button>
+
+        <button
+            class="logout-button"
+            onclick="creatorLogout()"
+            title="Logout"
+        >
+            ↪
+        </button>
+
+    </div>
+
+</header>
 
 
         <!-- ========================================
@@ -128,17 +152,31 @@
 
         <main id="chat" class="chat">
 
-            <div class="message ai">
+           <div class="message ai">
 
-                <div class="avatar">
-                    🤖
-                </div>
+    <div class="avatar ai-avatar">
 
-                <div class="bubble">
-                    Hi! I'm YUVA AI. How can I help you?
-                </div>
+        <div class="chat-orb">
+            <div class="chat-orb-core"></div>
+            <div class="chat-orb-ring orb-ring-one"></div>
+            <div class="chat-orb-ring orb-ring-two"></div>
+        </div>
 
-            </div>
+    </div>
+
+    <div class="message-content">
+
+        <div class="message-name ai-name">
+            YUVA AI
+        </div>
+
+        <div class="bubble">
+            Hi! I'm YUVA AI. How can I help you?
+        </div>
+
+    </div>
+
+</div>
 
         </main>
 

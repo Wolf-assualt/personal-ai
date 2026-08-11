@@ -222,31 +222,66 @@ input.addEventListener("keydown", function (event) {
 // ========================================
 
 function addMessage(text, type) {
-    const messageDiv = document.createElement("div");
+
+    const messageDiv =
+        document.createElement("div");
 
     messageDiv.className =
         type === "user"
             ? "message user"
             : "message ai";
 
-    const avatar =
-        type === "user"
-            ? "👤"
-            : "🤖";
+    if (type === "user") {
 
-    messageDiv.innerHTML = `
-        <div class="avatar">
-            ${avatar}
-        </div>
+        messageDiv.innerHTML = `
+            <div class="avatar user-avatar">
+                👤
+            </div>
 
-        <div class="bubble">
-            ${escapeHTML(text).replace(/\n/g, "<br>")}
-        </div>
-    `;
+            <div class="message-content">
+
+                <div class="message-name">
+                    You
+                </div>
+
+                <div class="bubble">
+                    ${escapeHTML(text).replace(/\n/g, "<br>")}
+                </div>
+
+            </div>
+        `;
+
+    } else {
+
+        messageDiv.innerHTML = `
+            <div class="avatar ai-avatar">
+
+                <div class="chat-orb">
+                    <div class="chat-orb-core"></div>
+                    <div class="chat-orb-ring orb-ring-one"></div>
+                    <div class="chat-orb-ring orb-ring-two"></div>
+                </div>
+
+            </div>
+
+            <div class="message-content">
+
+                <div class="message-name ai-name">
+                    YUVA AI
+                </div>
+
+                <div class="bubble">
+                    ${escapeHTML(text).replace(/\n/g, "<br>")}
+                </div>
+
+            </div>
+        `;
+    }
 
     chat.appendChild(messageDiv);
 
-    chat.scrollTop = chat.scrollHeight;
+    chat.scrollTop =
+        chat.scrollHeight;
 }
 
 // ========================================
