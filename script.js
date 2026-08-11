@@ -241,9 +241,13 @@ function addMessage(text, type) {
             : "message ai";
 
     const avatar =
-        type === "user"
-            ? "👤"
-            : "🤖";
+    type === "user"
+        ? "👤"
+        : `
+            <span class="ai-avatar">
+                <span class="ai-avatar-core"></span>
+            </span>
+          `;
 
 
     // AI MESSAGE
@@ -342,7 +346,12 @@ function copyMessage(button) {
 // TYPING INDICATOR
 // ========================================
 
+// ========================================
+// YUVA THINKING INDICATOR
+// ========================================
+
 function addTypingMessage() {
+
     const id =
         "typing-" +
         Date.now();
@@ -356,18 +365,35 @@ function addTypingMessage() {
         "message ai";
 
     messageDiv.innerHTML = `
-        <div class="avatar">
-            🤖
-        </div>
+    <div class="avatar">
+    <span class="ai-avatar">
+        <span class="ai-avatar-core"></span>
+    </span>
+    </div>
 
-        <div class="bubble">
-            <span>Thinking...</span>
+        <div class="bubble thinking-bubble">
+
+            <div class="thinking-content">
+
+                <span class="thinking-text">
+                    YUVA is thinking
+                </span>
+
+                <span class="thinking-dots">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </span>
+
+            </div>
+
         </div>
     `;
 
     chat.appendChild(messageDiv);
 
-    chat.scrollTop = chat.scrollHeight;
+    chat.scrollTop =
+        chat.scrollHeight;
 
     return id;
 }
