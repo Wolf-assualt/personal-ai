@@ -14,15 +14,15 @@
     "memory": "she is going to college in few weeks and the college name is rajiv Gandhi college of engineering and technology / RGCET puducherry",
     "createdAt": "2026-08-14T01:48:05.623Z"
   },
-  {
-    "id": "09488618aed1b9b5",
-    "memory": "My girlfriend's name is Navya",
-    "createdAt": "2026-08-14T02:02:10.015Z"
-  },
 
   {
     "id": "8bb674be21b127b3",
     "memory": "Im studying in sri Sairam college of engineering bangalore",
+    "createdAt": "2026-08-14T02:04:14.265Z"
+  },
+
+  {  "id": "8bb674be21b127b3",
+    "memory": "My faviorite color is black and my favorite food is biryani",
     "createdAt": "2026-08-14T02:04:14.265Z"
   }
 ]
