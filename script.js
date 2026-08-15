@@ -5,9 +5,16 @@ let creatorToken = localStorage.getItem("yuva_creator_token");
 let currentRole = localStorage.getItem("yuva_role");
 let currentName = localStorage.getItem("yuva_name");
 
-// ========================================
-// CREATOR / FAMILY / FRIEND LOGIN
-// ========================================
+// ============================================================
+// YUVA UI / RESPONSE SETTINGS
+// ============================================================
+
+let responseRevealEnabled = true;
+let speakingMessage = null;
+
+// ============================================================
+// CREATOR LOGIN
+// ============================================================
 
 async function creatorLogin() {
     const passwordInput =
@@ -30,11 +37,9 @@ async function creatorLogin() {
     try {
         const response = await fetch("/login", {
             method: "POST",
-
             headers: {
                 "Content-Type": "application/json"
             },
-
             body: JSON.stringify({
                 password: password
             })
@@ -44,7 +49,8 @@ async function creatorLogin() {
 
         if (!response.ok || !data.success) {
             message.textContent =
-                data.message || "Incorrect password.";
+                data.message ||
+                "Incorrect password.";
             return;
         }
 
@@ -67,48 +73,75 @@ async function creatorLogin() {
             currentName
         );
 
-        document.getElementById(
-            "loginScreen"
-        ).style.display = "none";
+        const loginScreen =
+            document.getElementById("loginScreen");
 
-        document.getElementById(
-            "app"
-        ).style.display = "flex";
+        const app =
+            document.getElementById("app");
+
+        if (loginScreen) {
+            loginScreen.style.display = "none";
+        }
+
+        if (app) {
+            app.style.display = "flex";
+        }
 
         updateRoleUI();
 
-        addMessage(data.greeting, "ai");
+        addMessage(
+            data.greeting,
+            "ai"
+        );
 
         passwordInput.value = "";
 
     } catch (error) {
-        console.error("Login error:", error);
+        console.error(
+            "Login error:",
+            error
+        );
 
         message.textContent =
             "Unable to connect to YUVA AI.";
     }
 }
 
-// ========================================
+
+// ============================================================
 // GUEST LOGIN
-// ========================================
+// ============================================================
 
 function continueAsGuest() {
     creatorToken = null;
     currentRole = "guest";
     currentName = "Guest";
 
-    localStorage.removeItem("yuva_creator_token");
-    localStorage.removeItem("yuva_role");
-    localStorage.removeItem("yuva_name");
+    localStorage.removeItem(
+        "yuva_creator_token"
+    );
 
-    document.getElementById(
-        "loginScreen"
-    ).style.display = "none";
+    localStorage.removeItem(
+        "yuva_role"
+    );
 
-    document.getElementById(
-        "app"
-    ).style.display = "flex";
+    localStorage.removeItem(
+        "yuva_name"
+    );
+
+    const loginScreen =
+        document.getElementById("loginScreen");
+
+    const app =
+        document.getElementById("app");
+
+    if (loginScreen) {
+        loginScreen.style.display = "none";
+    }
+
+    if (app) {
+        app.style.display = "flex";
+    }
 
     updateRoleUI();
 
@@ -118,9 +151,10 @@ function continueAsGuest() {
     );
 }
 
-// ========================================
-// UPDATE ROLE DISPLAY
-// ========================================
+
+// ============================================================
+// ROLE UI
+// ============================================================
 
 function updateRoleUI() {
     const status =
@@ -150,43 +184,56 @@ function updateRoleUI() {
     }
 }
 
-// ========================================
+
+// ============================================================
 // SEND MESSAGE
-// ========================================
+// ============================================================
 
 async function sendMessage() {
     const message =
-        input.value.trim();
+        input ? input.value.trim() : "";
 
     if (!message) return;
 
-    addMessage(message, "user");
+    addMessage(
+        message,
+        "user"
+    );
 
-    input.value = "";
+    if (input) {
+        input.value = "";
+    }
 
     const typingId =
         addTypingMessage();
 
     try {
-        const response = await fetch("/chat", {
-            method: "POST",
+        const response =
+            await fetch("/chat", {
+                method: "POST",
 
-            headers: {
-                "Content-Type": "application/json"
-            },
+                headers: {
+                    "Content-Type":
+                        "application/json"
+                },
 
-            body: JSON.stringify({
-                message: message,
-                token: creatorToken
-            })
-        });
+                body: JSON.stringify({
+                    message: message,
+                    token: creatorToken
+                })
+            });
 
         const data =
             await response.json();
 
-        removeTypingMessage(typingId);
+        removeTypingMessage(
+            typingId
+        );
 
-        if (!response.ok || !data.success) {
+        if (
+            !response.ok ||
+            !data.success
+        ) {
             addMessage(
                 data.message ||
                 "Something went wrong.",
@@ -222,9 +269,10 @@ async function sendMessage() {
     }
 }
 
-// ========================================
+
+// ============================================================
 // QUICK MESSAGE
-// ========================================
+// ============================================================
 
 function quickMessage(message) {
     if (!input) return;
@@ -234,16 +282,19 @@ function quickMessage(message) {
     sendMessage();
 }
 
-// ========================================
+
+// ============================================================
 // ENTER KEY
-// ========================================
+// ============================================================
 
 if (input) {
     input.addEventListener(
         "keydown",
         function (event) {
-
-            if (event.key === "Enter") {
+            if (
+                event.key === "Enter" &&
+                !event.shiftKey
+            ) {
                 event.preventDefault();
                 sendMessage();
             }
@@ -251,11 +302,17 @@ if (input) {
     );
 }
 
-// ========================================
-// ADD MESSAGE
-// ========================================
 
-function addMessage(text, type) {
+// ============================================================
+// ADD MESSAGE
+// ============================================================
+
+function addMessage(
+    text,
+    type,
+    animate = true
+) {
+    if (!chat) return null;
 
     const messageDiv =
         document.createElement("div");
@@ -265,6 +322,12 @@ function addMessage(text, type) {
             ? "message user"
             : "message ai";
 
+    if (animate) {
+        messageDiv.classList.add(
+            "yuva-message-enter"
+        );
+    }
+
     const avatar =
         type === "user"
             ? "👤"
@@ -272,9 +335,18 @@ function addMessage(text, type) {
                 <span class="ai-avatar">
                     <span class="ai-avatar-core"></span>
                 </span>
-              `;
+            `;
 
     if (type === "ai") {
+        const safeText =
+            escapeHTML(
+                text == null
+                    ? ""
+                    : String(text)
+            ).replace(
+                /\n/g,
+                "<br>"
+            );
 
         messageDiv.innerHTML = `
             <div class="avatar">
@@ -284,33 +356,46 @@ function addMessage(text, type) {
             <div class="bubble">
 
                 <div class="message-text">
-                    ${escapeHTML(text).replace(
-                        /\n/g,
-                        "<br>"
-                    )}
+                    ${safeText}
                 </div>
 
-                <button
-                    class="copy-button"
-                    type="button"
-                    onclick="copyMessage(this)"
-                    title="Copy response"
-                >
-                    📋
-                </button>
+                <div class="message-actions">
+
+                    <button
+                        class="copy-button"
+                        type="button"
+                        onclick="copyMessage(this)"
+                        title="Copy response"
+                    >
+                        📋
+                    </button>
+
+                    <button
+                        class="speak-message-button"
+                        type="button"
+                        onclick="speakMessageButton(this)"
+                        title="Speak this response"
+                    >
+                        🔊
+                    </button>
+
+                </div>
 
             </div>
         `;
 
     } else {
-
         messageDiv.innerHTML = `
             <div class="avatar">
                 ${avatar}
             </div>
 
             <div class="bubble">
-                ${escapeHTML(text).replace(
+                ${escapeHTML(
+                    text == null
+                        ? ""
+                        : String(text)
+                ).replace(
                     /\n/g,
                     "<br>"
                 )}
@@ -318,63 +403,150 @@ function addMessage(text, type) {
         `;
     }
 
-    chat.appendChild(messageDiv);
+    chat.appendChild(
+        messageDiv
+    );
+
+    requestAnimationFrame(() => {
+        messageDiv.classList.add(
+            "yuva-message-visible"
+        );
+    });
 
     chat.scrollTop =
         chat.scrollHeight;
+
+    return messageDiv;
 }
 
-// ========================================
-// COPY AI MESSAGE
-// ========================================
+
+// ============================================================
+// COPY MESSAGE
+// ============================================================
 
 function copyMessage(button) {
+    if (!button) return;
+
+    const bubble =
+        button.parentElement &&
+        button.parentElement.parentElement;
+
+    if (!bubble) return;
 
     const messageText =
-        button
-            .parentElement
-            .querySelector(".message-text")
-            .innerText;
+        bubble.querySelector(
+            ".message-text"
+        );
 
-    navigator.clipboard
-        .writeText(messageText)
-        .then(() => {
+    if (!messageText) return;
 
-            const original =
-                button.textContent;
+    const text =
+        messageText.innerText;
 
-            button.textContent = "✓";
+    if (
+        navigator.clipboard &&
+        navigator.clipboard.writeText
+    ) {
+        navigator.clipboard
+            .writeText(text)
+            .then(() => {
+                const original =
+                    button.textContent;
 
-            button.classList.add(
-                "copied"
-            );
+                button.textContent = "✓";
 
-            setTimeout(() => {
-
-                button.textContent =
-                    original;
-
-                button.classList.remove(
+                button.classList.add(
                     "copied"
                 );
 
-            }, 1500);
+                setTimeout(() => {
+                    button.textContent =
+                        original;
 
-        })
-        .catch(error => {
+                    button.classList.remove(
+                        "copied"
+                    );
+                }, 1500);
+            })
+            .catch(error => {
+                console.error(
+                    "Copy failed:",
+                    error
+                );
+            });
 
+    } else {
+        const area =
+            document.createElement(
+                "textarea"
+            );
+
+        area.value = text;
+
+        document.body.appendChild(area);
+
+        area.select();
+
+        try {
+            document.execCommand(
+                "copy"
+            );
+        } catch (error) {
             console.error(
                 "Copy failed:",
                 error
             );
-        });
+        }
+
+        area.remove();
+    }
 }
 
-// ========================================
-// YUVA THINKING INDICATOR
-// ========================================
+
+// ============================================================
+// SPEAK INDIVIDUAL MESSAGE
+// ============================================================
+
+function speakMessageButton(button) {
+    if (!button) return;
+
+    const bubble =
+        button.parentElement &&
+        button.parentElement.parentElement;
+
+    if (!bubble) return;
+
+    const messageText =
+        bubble.querySelector(
+            ".message-text"
+        );
+
+    if (!messageText) return;
+
+    const text =
+        messageText.innerText.trim();
+
+    if (!text) return;
+
+    if (
+        "speechSynthesis" in window
+    ) {
+        window.speechSynthesis.cancel();
+    }
+
+    speakReply(
+        text,
+        true
+    );
+}
+
+
+// ============================================================
+// THINKING INDICATOR
+// ============================================================
 
 function addTypingMessage() {
+    if (!chat) return null;
 
     const id =
         "typing-" +
@@ -386,7 +558,7 @@ function addTypingMessage() {
     messageDiv.id = id;
 
     messageDiv.className =
-        "message ai";
+        "message ai yuva-message-enter";
 
     messageDiv.innerHTML = `
         <div class="avatar">
@@ -414,7 +586,15 @@ function addTypingMessage() {
         </div>
     `;
 
-    chat.appendChild(messageDiv);
+    chat.appendChild(
+        messageDiv
+    );
+
+    requestAnimationFrame(() => {
+        messageDiv.classList.add(
+            "yuva-message-visible"
+        );
+    });
 
     chat.scrollTop =
         chat.scrollHeight;
@@ -422,7 +602,9 @@ function addTypingMessage() {
     return id;
 }
 
+
 function removeTypingMessage(id) {
+    if (!id) return;
 
     const element =
         document.getElementById(id);
@@ -432,23 +614,27 @@ function removeTypingMessage(id) {
     }
 }
 
-// ========================================
+
+// ============================================================
 // HTML SAFETY
-// ========================================
+// ============================================================
 
 function escapeHTML(text) {
-
     const div =
         document.createElement("div");
 
-    div.textContent = text;
+    div.textContent =
+        text == null
+            ? ""
+            : String(text);
 
     return div.innerHTML;
 }
 
-// ========================================
+
+// ============================================================
 // YUVA VOICE SYSTEM
-// ========================================
+// ============================================================
 
 const SpeechRecognitionAPI =
     window.SpeechRecognition ||
@@ -461,40 +647,49 @@ let isSpeaking = false;
 
 let voices = [];
 
+let voicePerformanceMode =
+    "normal";
+
 const micButton =
-    document.getElementById("micButton");
-
-const voiceStatus =
-    document.getElementById("voiceStatus");
-
-const voiceStatusText =
-    document.getElementById("voiceStatusText");
-
-const voicePanel =
-    document.getElementById("voicePanel");
-
-const voiceSelect =
-    document.getElementById("voiceSelect");
-
-const stopSpeakingButton =
     document.getElementById(
-        "stopSpeakingButton"
+        "micButton"
     );
 
-// ========================================
+const voiceStatus =
+    document.getElementById(
+        "voiceStatus"
+    );
+
+const voiceStatusText =
+    document.getElementById(
+        "voiceStatusText"
+    );
+
+const voicePanel =
+    document.getElementById(
+        "voicePanel"
+    );
+
+const voiceSelect =
+    document.getElementById(
+        "voiceSelect"
+    );
+
+
+// ============================================================
 // VOICE STATUS
-// ========================================
+// ============================================================
 
 function setVoiceStatus(
     text,
     state = "",
     visible = true
 ) {
-
     if (!voiceStatus) return;
 
     if (voiceStatusText) {
-        voiceStatusText.textContent = text;
+        voiceStatusText.textContent =
+            text;
     }
 
     voiceStatus.classList.remove(
@@ -504,7 +699,6 @@ function setVoiceStatus(
     );
 
     if (state) {
-
         voiceStatus.classList.add(
             state
         );
@@ -515,52 +709,43 @@ function setVoiceStatus(
     }
 
     if (visible) {
-
         voiceStatus.classList.add(
             "visible"
         );
-
     } else {
-
         voiceStatus.classList.remove(
             "visible"
         );
     }
 }
 
-// ========================================
+
+// ============================================================
 // SPEECH RECOGNITION
-// ========================================
+// ============================================================
 
 if (SpeechRecognitionAPI) {
-
     recognition =
         new SpeechRecognitionAPI();
 
     recognition.continuous = false;
-
     recognition.interimResults = true;
-
     recognition.lang = "en-IN";
-
 
     recognition.onstart =
         function () {
-
             isListening = true;
 
             if (
                 "speechSynthesis" in window &&
                 speechSynthesis.speaking
             ) {
-
                 speechSynthesis.cancel();
 
                 isSpeaking = false;
             }
 
             if (micButton) {
-
                 micButton.classList.add(
                     "listening"
                 );
@@ -583,9 +768,7 @@ if (SpeechRecognitionAPI) {
 
     recognition.onresult =
         function (event) {
-
             let transcript = "";
-
             let isFinal = false;
 
             for (
@@ -593,7 +776,6 @@ if (SpeechRecognitionAPI) {
                 i < event.results.length;
                 i++
             ) {
-
                 transcript +=
                     event.results[i][0]
                         .transcript;
@@ -601,13 +783,11 @@ if (SpeechRecognitionAPI) {
                 if (
                     event.results[i].isFinal
                 ) {
-
                     isFinal = true;
                 }
             }
 
             if (input) {
-
                 input.value =
                     transcript.trim();
             }
@@ -617,7 +797,6 @@ if (SpeechRecognitionAPI) {
                 input &&
                 input.value.trim()
             ) {
-
                 setVoiceStatus(
                     "Sending...",
                     "listening",
@@ -631,7 +810,6 @@ if (SpeechRecognitionAPI) {
 
     recognition.onerror =
         function (event) {
-
             console.error(
                 "Speech recognition error:",
                 event.error
@@ -640,7 +818,6 @@ if (SpeechRecognitionAPI) {
             isListening = false;
 
             if (micButton) {
-
                 micButton.classList.remove(
                     "listening"
                 );
@@ -653,7 +830,6 @@ if (SpeechRecognitionAPI) {
                 event.error ===
                 "not-allowed"
             ) {
-
                 setVoiceStatus(
                     "Microphone permission denied",
                     "",
@@ -664,7 +840,6 @@ if (SpeechRecognitionAPI) {
                 event.error ===
                 "no-speech"
             ) {
-
                 setVoiceStatus(
                     "No speech detected",
                     "",
@@ -672,7 +847,6 @@ if (SpeechRecognitionAPI) {
                 );
 
             } else {
-
                 setVoiceStatus(
                     "Voice input unavailable",
                     "",
@@ -680,44 +854,34 @@ if (SpeechRecognitionAPI) {
                 );
             }
 
-            setTimeout(
-                () => {
-
-                    if (!isSpeaking) {
-
-                        setVoiceStatus(
-                            "Ready",
-                            "",
-                            false
-                        );
-                    }
-
-                },
-                2200
-            );
+            setTimeout(() => {
+                if (!isSpeaking) {
+                    setVoiceStatus(
+                        "Ready",
+                        "",
+                        false
+                    );
+                }
+            }, 2200);
         };
 
 
     recognition.onend =
         function () {
-
             isListening = false;
 
             if (micButton) {
-
                 micButton.classList.remove(
                     "listening"
                 );
 
                 if (!isSpeaking) {
-
                     micButton.textContent =
                         "🎤";
                 }
             }
 
             if (!isSpeaking) {
-
                 setVoiceStatus(
                     "Ready",
                     "",
@@ -727,14 +891,13 @@ if (SpeechRecognitionAPI) {
         };
 }
 
-// ========================================
-// START / STOP LISTENING
-// ========================================
+
+// ============================================================
+// TOGGLE MICROPHONE
+// ============================================================
 
 function toggleVoiceInput() {
-
     if (!recognition) {
-
         addMessage(
             "Voice input isn't supported in this browser. Try Chrome or Edge.",
             "ai"
@@ -744,20 +907,16 @@ function toggleVoiceInput() {
     }
 
     if (isListening) {
-
         recognition.stop();
-
         return;
     }
 
     stopSpeaking();
 
     try {
-
         recognition.start();
 
     } catch (error) {
-
         console.log(
             "Recognition could not start:",
             error
@@ -765,21 +924,18 @@ function toggleVoiceInput() {
     }
 }
 
-// ========================================
+
+// ============================================================
 // VOICE OUTPUT
-// ========================================
+// ============================================================
 
 let voiceOutputEnabled =
     localStorage.getItem(
         "yuva_voice_output"
     ) === "true";
 
-// ========================================
-// UPDATE VOICE TOGGLE
-// ========================================
 
 function updateVoiceToggleUI() {
-
     const voiceToggle =
         document.getElementById(
             "voiceToggle"
@@ -793,7 +949,6 @@ function updateVoiceToggleUI() {
             : "🔊 Voice: Off";
 
     if (voicePanel) {
-
         voicePanel.classList.toggle(
             "visible",
             voiceOutputEnabled
@@ -801,12 +956,8 @@ function updateVoiceToggleUI() {
     }
 }
 
-// ========================================
-// TOGGLE VOICE
-// ========================================
 
 function toggleVoiceOutput() {
-
     voiceOutputEnabled =
         !voiceOutputEnabled;
 
@@ -818,7 +969,6 @@ function toggleVoiceOutput() {
     updateVoiceToggleUI();
 
     if (!voiceOutputEnabled) {
-
         stopSpeaking();
 
         setVoiceStatus(
@@ -827,30 +977,24 @@ function toggleVoiceOutput() {
             true
         );
 
-        setTimeout(
-            () => {
-
-                if (!isListening) {
-
-                    setVoiceStatus(
-                        "Ready",
-                        "",
-                        false
-                    );
-                }
-
-            },
-            1500
-        );
+        setTimeout(() => {
+            if (!isListening) {
+                setVoiceStatus(
+                    "Ready",
+                    "",
+                    false
+                );
+            }
+        }, 1500);
     }
 }
 
-// ========================================
+
+// ============================================================
 // LOAD VOICES
-// ========================================
+// ============================================================
 
 function loadVoices() {
-
     if (
         !("speechSynthesis" in window)
     ) {
@@ -885,7 +1029,6 @@ function loadVoices() {
 
     voices.forEach(
         (voice, index) => {
-
             const option =
                 document.createElement(
                     "option"
@@ -906,16 +1049,15 @@ function loadVoices() {
         savedVoice !== null &&
         voices[savedVoice]
     ) {
-
         voiceSelect.value =
             savedVoice;
     }
 }
 
+
 if (
     "speechSynthesis" in window
 ) {
-
     loadVoices();
 
     window.speechSynthesis
@@ -923,16 +1065,15 @@ if (
         loadVoices;
 }
 
-// ========================================
-// SAVE SELECTED VOICE
-// ========================================
+
+// ============================================================
+// SAVE VOICE
+// ============================================================
 
 if (voiceSelect) {
-
     voiceSelect.addEventListener(
         "change",
         function () {
-
             localStorage.setItem(
                 "yuva_selected_voice",
                 voiceSelect.value
@@ -944,247 +1085,139 @@ if (voiceSelect) {
                 true
             );
 
-            setTimeout(
-                () => {
-
-                    if (!isSpeaking) {
-
-                        setVoiceStatus(
-                            "Ready",
-                            "",
-                            false
-                        );
-                    }
-
-                },
-                1200
-            );
+            setTimeout(() => {
+                if (!isSpeaking) {
+                    setVoiceStatus(
+                        "Ready",
+                        "",
+                        false
+                    );
+                }
+            }, 1200);
         }
     );
 }
 
+
 // ============================================================
-// EXPRESSIVE SPEECH ENGINE
-// ============================================================
-//
-// This is the important part.
-//
-// YUVA should NOT send:
-//
-//     ummmmmmmm
-//
-// directly to browser TTS.
-//
-// Browser TTS often turns it into:
-//
-//     u m m m m m m m
-//
-// Instead we detect the expression and create a controlled
-// speech sequence.
-//
-// Examples:
-//
-//     ummmmmmmm  -> "umm..." + natural hold
-//     ahhhhhhhh  -> "ah..."  + natural hold
-//     uhhhhhhh   -> "uh..."  + natural hold
-//     yeahhhh    -> "yeah..." + natural hold
-//     hmmmmmmm   -> "hmm..." + natural hold
-//
+// EXPRESSIVE SOUND DETECTION
 // ============================================================
 
-// ========================================
-// DETECT EXPRESSIVE WORD
-// ========================================
-
-function detectExpressiveSound(word) {
-
+function detectLongSound(word) {
     if (!word) return null;
 
-    const clean =
+    const value =
         word
-            .trim()
             .toLowerCase()
-            .replace(
-                /^[^\p{L}]+|[^\p{L}]+$/gu,
-                ""
-            );
-
-    if (!clean) return null;
-
+            .replace(/[.,!?;:]+$/g, "");
 
     // UMMMMMMMM
-    if (/^u+m{2,}$/i.test(clean)) {
 
+    if (/^u+m{2,}$/i.test(value)) {
         return {
-            type: "umm",
-            original: clean,
-            base: "umm",
-            repeatCount:
-                clean.length - 2
+            text: "umm",
+            pause:
+                Math.min(
+                    2400,
+                    Math.max(
+                        500,
+                        value.length * 115
+                    )
+                ),
+            rate: 0.5,
+            pitch: 0.9,
+            volume: 0.9
         };
     }
-
 
     // AHHHHHHHH
-    if (/^a+h{2,}$/i.test(clean)) {
 
+    if (/^a+h{2,}$/i.test(value)) {
         return {
-            type: "ah",
-            original: clean,
-            base: "ah",
-            repeatCount:
-                clean.length - 2
+            text: "ah",
+            pause:
+                Math.min(
+                    2400,
+                    Math.max(
+                        500,
+                        value.length * 115
+                    )
+                ),
+            rate: 0.5,
+            pitch: 0.85,
+            volume: 0.85
         };
     }
-
 
     // UHHHHHHHH
-    if (/^u+h{2,}$/i.test(clean)) {
 
+    if (/^u+h{2,}$/i.test(value)) {
         return {
-            type: "uh",
-            original: clean,
-            base: "uh",
-            repeatCount:
-                clean.length - 2
+            text: "uh",
+            pause:
+                Math.min(
+                    2400,
+                    Math.max(
+                        500,
+                        value.length * 115
+                    )
+                ),
+            rate: 0.5,
+            pitch: 0.85,
+            volume: 0.85
         };
     }
-
 
     // YEAHHHHHH
-    if (/^yeah+h{2,}$/i.test(clean)) {
 
+    if (/^yeah+h{2,}$/i.test(value)) {
         return {
-            type: "yeah",
-            original: clean,
-            base: "yeah",
-            repeatCount:
-                clean.length - 5
+            text: "yeah",
+            pause:
+                Math.min(
+                    2000,
+                    Math.max(
+                        450,
+                        value.length * 90
+                    )
+                ),
+            rate: 0.6,
+            pitch: 1,
+            volume: 0.9
         };
     }
 
-
     // HMMMMMMMM
-    if (/^h+m{2,}$/i.test(clean)) {
 
+    if (/^h+m{2,}$/i.test(value)) {
         return {
-            type: "hmm",
-            original: clean,
-            base: "hmm",
-            repeatCount:
-                clean.length - 3
+            text: "hmm",
+            pause:
+                Math.min(
+                    2200,
+                    Math.max(
+                        500,
+                        value.length * 110
+                    )
+                ),
+            rate: 0.5,
+            pitch: 0.85,
+            volume: 0.85
         };
     }
 
     return null;
 }
 
-// ========================================
-// CREATE EXPRESSIVE SPEECH
-// ========================================
 
-function createExpressiveSpeech(expression) {
-
-    if (!expression) return null;
-
-    /*
-     * We deliberately do NOT give the browser
-     * the user's repeated letters.
-     *
-     * Example:
-     *
-     * ummmmmmmmmmmmm
-     *
-     * becomes:
-     *
-     * "umm"
-     *
-     * followed by silence.
-     */
-
-    const hold =
-        Math.min(
-            2200,
-            Math.max(
-                450,
-                450 +
-                (
-                    expression.repeatCount *
-                    90
-                )
-            )
-        );
-
-    let text =
-        expression.base;
-
-    let rate = 0.85;
-    let pitch = 1;
-    let volume = 1;
-
-    if (
-        expression.type === "umm"
-    ) {
-
-        text = "umm";
-        rate = 0.72;
-        pitch = 0.95;
-
-    } else if (
-        expression.type === "ah"
-    ) {
-
-        text = "ah";
-        rate = 0.65;
-        pitch = 0.9;
-
-    } else if (
-        expression.type === "uh"
-    ) {
-
-        text = "uh";
-        rate = 0.70;
-        pitch = 0.9;
-
-    } else if (
-        expression.type === "yeah"
-    ) {
-
-        text = "yeah";
-        rate = 0.82;
-        pitch = 1.0;
-
-    } else if (
-        expression.type === "hmm"
-    ) {
-
-        text = "hmm";
-        rate = 0.70;
-        pitch = 0.85;
-    }
-
-    return {
-        text,
-        hold,
-        rate,
-        pitch,
-        volume
-    };
-}
-
-// ========================================
-// CLEAN MARKDOWN
-// ========================================
+// ============================================================
+// CLEAN TEXT
+// ============================================================
 
 function cleanSpeechText(text) {
-
     if (!text) return "";
 
-    let result = text;
-
-    /*
-     * Remove code blocks.
-     */
+    let result = String(text);
 
     result =
         result.replace(
@@ -1192,20 +1225,11 @@ function cleanSpeechText(text) {
             ""
         );
 
-    /*
-     * Convert markdown links
-     * into visible text.
-     */
-
     result =
         result.replace(
             /\[([^\]]+)\]\([^)]+\)/g,
             "$1"
         );
-
-    /*
-     * Remove common markdown symbols.
-     */
 
     result =
         result.replace(
@@ -1214,7 +1238,10 @@ function cleanSpeechText(text) {
         );
 
     /*
-     * Normalize spaces.
+     * IMPORTANT:
+     * Keep *performance cues* intact.
+     * They are parsed before this function
+     * receives normal speech text.
      */
 
     result =
@@ -1226,53 +1253,37 @@ function cleanSpeechText(text) {
     return result.trim();
 }
 
+
 // ============================================================
-// REMOVE / INTERPRET ACTION MARKERS
-// ============================================================
-//
-// Examples:
-//
-// *laughs*
-// *laughs softly*
-// *whispers softly*
-// *whispers back softly, with a hint of a smile*
-// *leans closer*
-// *looks at you*
-// *pauses*
-//
-// These must NEVER be spoken literally.
-//
+// PARSE PERFORMANCE CUES
 // ============================================================
 
-function parseSpeechPerformance(text) {
-
+function parsePerformance(text) {
     const segments = [];
 
     if (!text) return segments;
 
     let lastIndex = 0;
 
-    const cueRegex =
+    const regex =
         /\*([^*]+)\*/g;
 
     let match;
 
     while (
-        (match = cueRegex.exec(text))
+        (match = regex.exec(text))
         !== null
     ) {
-
-        const normalText =
+        const normal =
             text.substring(
                 lastIndex,
                 match.index
             );
 
-        if (normalText.trim()) {
-
+        if (normal.trim()) {
             segments.push({
                 type: "text",
-                text: normalText
+                text: normal
             });
         }
 
@@ -1281,111 +1292,88 @@ function parseSpeechPerformance(text) {
                 .trim()
                 .toLowerCase();
 
-
-        // --------------------------------
-        // LAUGH
-        // --------------------------------
+        // CHUCKLE
 
         if (
+            cue.includes("chuckle")
+        ) {
+            segments.push({
+                type: "chuckle"
+            });
+        }
+
+        // LAUGH
+
+        else if (
             cue.includes("laugh")
         ) {
-
             segments.push({
                 type: "laugh",
-
                 soft:
                     cue.includes("soft") ||
-                    cue.includes("quiet")
+                    cue.includes("quiet") ||
+                    cue.includes("light")
             });
+        }
 
+        // GIGGLE
 
-        // --------------------------------
-        // WHISPER
-        // --------------------------------
-
-        } else if (
-            cue.includes("whisper")
+        else if (
+            cue.includes("giggle")
         ) {
-
             segments.push({
-                type: "whisper"
+                type: "giggle"
             });
+        }
 
-
-        // --------------------------------
-        // PAUSE
-        // --------------------------------
-
-        } else if (
-            cue.includes("pause") ||
-            cue.includes("wait") ||
-            cue.includes("silence")
-        ) {
-
-            segments.push({
-                type: "pause"
-            });
-
-
-        // --------------------------------
         // SIGH
-        // --------------------------------
 
-        } else if (
+        else if (
             cue.includes("sigh")
         ) {
-
             segments.push({
                 type: "sigh"
             });
+        }
 
+        // WHISPER
 
-        // --------------------------------
-        // MOAN
-        // --------------------------------
-
-        } else if (
-            cue.includes("moan")
+        else if (
+            cue.includes("whisper")
         ) {
-
             segments.push({
-                type: "moan"
+                type: "whisper"
             });
+        }
 
+        // PAUSE
 
-        // --------------------------------
+        else if (
+            cue.includes("pause") ||
+            cue.includes("wait") ||
+            cue.includes("silence") ||
+            cue.includes("moment")
+        ) {
+            segments.push({
+                type: "pause"
+            });
+        }
+
         // BREATH
-        // --------------------------------
 
-        } else if (
+        else if (
             cue.includes("breath") ||
             cue.includes("inhale") ||
             cue.includes("exhale")
         ) {
-
             segments.push({
                 type: "breath"
             });
+        }
 
+        // ACTION
 
-        // --------------------------------
-        // OTHER ACTION
-        // --------------------------------
-
-        } else {
-
-            /*
-             * Things like:
-             *
-             * *smiles*
-             * *leans closer*
-             * *looks at you*
-             *
-             * are visual/action cues.
-             *
-             * They are NOT spoken.
-             */
-
+        else {
             segments.push({
                 type: "action"
             });
@@ -1402,7 +1390,6 @@ function parseSpeechPerformance(text) {
         );
 
     if (remaining.trim()) {
-
         segments.push({
             type: "text",
             text: remaining
@@ -1412,244 +1399,26 @@ function parseSpeechPerformance(text) {
     return segments;
 }
 
+
 // ============================================================
-// SPEAK TEXT WITH EXPRESSIVE SOUNDS
-// ============================================================
-
-function speakTextWithExpressions(
-    text,
-    settings,
-    done
-) {
-
-    const cleaned =
-        cleanSpeechText(text);
-
-    if (!cleaned) {
-
-        done();
-        return;
-    }
-
-    /*
-     * Split into whitespace-preserving pieces.
-     */
-
-    const parts =
-        cleaned.split(
-            /(\s+)/
-        );
-
-    let index = 0;
-
-
-    function nextPart() {
-
-        if (
-            index >=
-            parts.length
-        ) {
-
-            done();
-            return;
-        }
-
-        const part =
-            parts[index];
-
-        index++;
-
-
-        /*
-         * Spaces don't need speech.
-         */
-
-        if (!part.trim()) {
-
-            nextPart();
-            return;
-        }
-
-
-        /*
-         * Detect expressive sound.
-         */
-
-        const expression =
-            detectExpressiveSound(
-                part
-            );
-
-
-        if (expression) {
-
-            const speech =
-                createExpressiveSpeech(
-                    expression
-                );
-
-            if (!speech) {
-
-                nextPart();
-                return;
-            }
-
-
-            const utterance =
-                new SpeechSynthesisUtterance(
-                    speech.text
-                );
-
-            applyVoiceSettings(
-                utterance,
-                {
-                    rate:
-                        speech.rate,
-                    pitch:
-                        speech.pitch,
-                    volume:
-                        speech.volume
-                }
-            );
-
-
-            utterance.onend =
-                function () {
-
-                    /*
-                     * The hold is REAL silence.
-                     *
-                     * We don't synthesize:
-                     *
-                     * h h h h h h
-                     *
-                     * anymore.
-                     */
-
-                    setTimeout(
-                        nextPart,
-                        speech.hold
-                    );
-                };
-
-
-            utterance.onerror =
-                function () {
-
-                    nextPart();
-                };
-
-
-            window.speechSynthesis.speak(
-                utterance
-            );
-
-            return;
-        }
-
-
-        /*
-         * Build a normal sentence chunk.
-         *
-         * Stop when an expressive word
-         * appears.
-         */
-
-        let normalText =
-            part;
-
-
-        while (
-            index <
-            parts.length
-        ) {
-
-            const next =
-                parts[index];
-
-
-            if (!next.trim()) {
-
-                normalText += next;
-
-                index++;
-
-                continue;
-            }
-
-
-            if (
-                detectExpressiveSound(
-                    next
-                )
-            ) {
-
-                break;
-            }
-
-
-            normalText += next;
-
-            index++;
-        }
-
-
-        const utterance =
-            new SpeechSynthesisUtterance(
-                normalText
-            );
-
-
-        applyVoiceSettings(
-            utterance,
-            settings
-        );
-
-
-        utterance.onend =
-            function () {
-
-                nextPart();
-            };
-
-
-        utterance.onerror =
-            function () {
-
-                nextPart();
-            };
-
-
-        window.speechSynthesis.speak(
-            utterance
-        );
-    }
-
-
-    nextPart();
-}
-
-// ========================================
 // APPLY VOICE SETTINGS
-// ========================================
+// ============================================================
 
 function applyVoiceSettings(
     utterance,
     settings = {}
 ) {
-
-    const selectedVoice =
+    const selected =
         voiceSelect
             ? voiceSelect.value
             : "";
 
     if (
-        selectedVoice !== "" &&
-        voices[selectedVoice]
+        selected !== "" &&
+        voices[selected]
     ) {
-
         utterance.voice =
-            voices[selectedVoice];
+            voices[selected];
     }
 
     utterance.rate =
@@ -1665,292 +1434,444 @@ function applyVoiceSettings(
         utterance.voice &&
         utterance.voice.lang
     ) {
-
         utterance.lang =
             utterance.voice.lang;
 
     } else {
-
         utterance.lang =
             "en-IN";
     }
 }
 
+
 // ============================================================
-// SPEAK PERFORMANCE SEGMENT
+// SAFE SPEECH
 // ============================================================
 
-function speakPerformanceSegment(
-    segment,
+function speakUtterance(
+    text,
+    settings,
     done
 ) {
-
-    if (!segment) {
-
+    if (!text) {
         done();
         return;
     }
 
+    if (
+        !("speechSynthesis" in window)
+    ) {
+        done();
+        return;
+    }
 
-    // ====================================
+    const utterance =
+        new SpeechSynthesisUtterance(
+            text
+        );
+
+    applyVoiceSettings(
+        utterance,
+        settings
+    );
+
+    utterance.onend =
+        function () {
+            done();
+        };
+
+    utterance.onerror =
+        function () {
+            done();
+        };
+
+    window.speechSynthesis.speak(
+        utterance
+    );
+}
+
+
+// ============================================================
+// SPEAK LONG SOUND
+// ============================================================
+
+function speakLongSound(
+    sound,
+    done
+) {
+    speakUtterance(
+        sound.text,
+        {
+            rate:
+                sound.rate,
+            pitch:
+                sound.pitch,
+            volume:
+                sound.volume
+        },
+        function () {
+            setTimeout(
+                done,
+                sound.pause
+            );
+        }
+    );
+}
+
+
+// ============================================================
+// SPEAK TEXT
+// ============================================================
+
+function speakText(
+    text,
+    settings,
+    done
+) {
+    const cleaned =
+        cleanSpeechText(text);
+
+    if (!cleaned) {
+        done();
+        return;
+    }
+
+    const parts =
+        cleaned.split(
+            /(\s+)/
+        );
+
+    let index = 0;
+
+    function next() {
+        if (
+            index >=
+            parts.length
+        ) {
+            done();
+            return;
+        }
+
+        const part =
+            parts[index++];
+
+        if (!part.trim()) {
+            next();
+            return;
+        }
+
+        const sound =
+            detectLongSound(
+                part
+            );
+
+        if (sound) {
+            speakLongSound(
+                sound,
+                next
+            );
+
+            return;
+        }
+
+        let normal =
+            part;
+
+        while (
+            index <
+            parts.length
+        ) {
+            const nextPart =
+                parts[index];
+
+            if (!nextPart.trim()) {
+                normal += nextPart;
+
+                index++;
+
+                continue;
+            }
+
+            if (
+                detectLongSound(
+                    nextPart
+                )
+            ) {
+                break;
+            }
+
+            normal += nextPart;
+
+            index++;
+        }
+
+        speakUtterance(
+            normal,
+            settings,
+            next
+        );
+    }
+
+    next();
+}
+
+
+// ============================================================
+// PERFORMANCE SEGMENT
+// ============================================================
+
+function performSegment(
+    segment,
+    done
+) {
+    if (!segment) {
+        done();
+        return;
+    }
+
     // NORMAL TEXT
-    // ====================================
 
     if (
         segment.type === "text"
     ) {
+        let settings = {
+            rate: 1,
+            pitch: 1,
+            volume: 1
+        };
 
-        speakTextWithExpressions(
+        if (
+            voicePerformanceMode ===
+            "whisper"
+        ) {
+            settings = {
+                rate: 0.78,
+                pitch: 0.88,
+                volume: 0.30
+            };
+        }
+
+        speakText(
             segment.text,
-            {
-                rate: 1,
-                pitch: 1,
-                volume: 1
-            },
-            done
+            settings,
+            function () {
+                voicePerformanceMode =
+                    "normal";
+
+                done();
+            }
         );
 
         return;
     }
 
-
-    // ====================================
-    // PAUSE
-    // ====================================
+    // ACTION
 
     if (
-        segment.type === "pause"
+        segment.type === "action"
     ) {
-
-        setTimeout(
-            done,
-            900
-        );
-
-        return;
-    }
-
-
-    // ====================================
-    // WHISPER
-    // ====================================
-
-    if (
-        segment.type === "whisper"
-    ) {
-
         /*
-         * Browser SpeechSynthesis does not
-         * provide a true whisper mode.
+         * Actions are deliberately not spoken.
          *
-         * We therefore create a quieter,
-         * slower voice setting for the
-         * following content.
+         * Example:
+         * *smiles*
+         * *leans closer*
+         * *nods*
          *
-         * The marker itself is NEVER spoken.
+         * They disappear from speech rather
+         * than making the browser say them.
          */
 
         setTimeout(
             done,
-            30
+            60
         );
 
         return;
     }
 
+    // PAUSE
 
-    // ====================================
+    if (
+        segment.type === "pause"
+    ) {
+        setTimeout(
+            done,
+            1000
+        );
+
+        return;
+    }
+
+    // CHUCKLE
+
+    if (
+        segment.type === "chuckle"
+    ) {
+        speakUtterance(
+            "heh heh",
+            {
+                rate: 0.72,
+                pitch: 1.08,
+                volume: 0.58
+            },
+            function () {
+                setTimeout(
+                    done,
+                    180
+                );
+            }
+        );
+
+        return;
+    }
+
     // LAUGH
-    // ====================================
 
     if (
         segment.type === "laugh"
     ) {
-
-        const laugh =
+        speakUtterance(
             segment.soft
-                ? "heh heh..."
-                : "ha ha ha...";
-
-
-        const utterance =
-            new SpeechSynthesisUtterance(
-                laugh
-            );
-
-
-        applyVoiceSettings(
-            utterance,
+                ? "heh heh heh"
+                : "ha ha ha",
             {
                 rate:
                     segment.soft
-                        ? 0.78
+                        ? 0.76
                         : 0.95,
 
                 pitch:
                     segment.soft
                         ? 1.08
-                        : 1.15,
+                        : 1.18,
 
                 volume:
                     segment.soft
-                        ? 0.65
-                        : 0.9
+                        ? 0.58
+                        : 0.88
+            },
+            function () {
+                setTimeout(
+                    done,
+                    180
+                );
             }
-        );
-
-
-        utterance.onend =
-            done;
-
-        utterance.onerror =
-            done;
-
-
-        window.speechSynthesis.speak(
-            utterance
         );
 
         return;
     }
 
+    // GIGGLE
 
-    // ====================================
+    if (
+        segment.type === "giggle"
+    ) {
+        speakUtterance(
+            "hee hee hee",
+            {
+                rate: 0.9,
+                pitch: 1.25,
+                volume: 0.62
+            },
+            function () {
+                setTimeout(
+                    done,
+                    150
+                );
+            }
+        );
+
+        return;
+    }
+
     // SIGH
-    // ====================================
 
     if (
         segment.type === "sigh"
     ) {
-
-        const utterance =
-            new SpeechSynthesisUtterance(
-                "haaah..."
-            );
-
-
-        applyVoiceSettings(
-            utterance,
+        speakUtterance(
+            "haaah...",
             {
-                rate: 0.7,
-                pitch: 0.8,
-                volume: 0.65
+                rate: 0.58,
+                pitch: 0.72,
+                volume: 0.52
+            },
+            function () {
+                setTimeout(
+                    done,
+                    250
+                );
             }
-        );
-
-
-        utterance.onend =
-            done;
-
-        utterance.onerror =
-            done;
-
-
-        window.speechSynthesis.speak(
-            utterance
         );
 
         return;
     }
 
-
-    // ====================================
     // BREATH
-    // ====================================
 
     if (
         segment.type === "breath"
     ) {
-
-        /*
-         * A real breath cannot be reliably
-         * generated by browser TTS.
-         *
-         * Don't read the word "breath".
-         * Instead create a short natural pause.
-         */
-
-        setTimeout(
-            done,
-            350
-        );
-
-        return;
-    }
-
-
-    // ====================================
-    // MOAN
-    // ====================================
-
-    if (
-        segment.type === "moan"
-    ) {
-
-        /*
-         * Do NOT say:
-         *
-         * "moan"
-         *
-         * The marker is an instruction,
-         * not text.
-         *
-         * We use a neutral non-verbal vocalization.
-         */
-
-        const utterance =
-            new SpeechSynthesisUtterance(
-                "mmm..."
-            );
-
-
-        applyVoiceSettings(
-            utterance,
+        speakUtterance(
+            "haa...",
             {
-                rate: 0.7,
-                pitch: 0.8,
-                volume: 0.65
+                rate: 0.45,
+                pitch: 0.68,
+                volume: 0.28
+            },
+            function () {
+                setTimeout(
+                    done,
+                    180
+                );
             }
         );
 
+        return;
+    }
 
-        utterance.onend =
-            done;
+    // WHISPER
 
-        utterance.onerror =
-            done;
+    if (
+        segment.type === "whisper"
+    ) {
+        /*
+         * Browser speech synthesis cannot create
+         * a true human whisper on every voice.
+         *
+         * We therefore switch to a lower-volume,
+         * slower voice mode for the text after
+         * the cue.
+         */
 
+        voicePerformanceMode =
+            "whisper";
 
-        window.speechSynthesis.speak(
-            utterance
+        setTimeout(
+            done,
+            80
         );
 
         return;
     }
 
-
-    // ====================================
-    // OTHER ACTIONS
-    // ====================================
-
-    /*
-     * *smiles*
-     * *leans closer*
-     * *looks at you*
-     *
-     * Nothing is spoken.
-     */
-
     done();
 }
+
 
 // ============================================================
 // SPEAK YUVA REPLY
 // ============================================================
 
-function speakReply(text) {
-
-    if (!voiceOutputEnabled) {
+function speakReply(
+    text,
+    force = false
+) {
+    if (
+        !voiceOutputEnabled &&
+        !force
+    ) {
         return;
     }
 
@@ -1960,35 +1881,23 @@ function speakReply(text) {
         return;
     }
 
-    /*
-     * Stop previous speech.
-     */
-
     window.speechSynthesis.cancel();
 
-
-    /*
-     * Parse actions and expressions.
-     */
-
     const segments =
-        parseSpeechPerformance(
+        parsePerformance(
             text
         );
-
 
     if (!segments.length) {
         return;
     }
 
-
-    let index = 0;
+    voicePerformanceMode =
+        "normal";
 
     isSpeaking = true;
 
-
     if (micButton) {
-
         micButton.classList.add(
             "speaking"
         );
@@ -2001,59 +1910,52 @@ function speakReply(text) {
             "🔊";
     }
 
-
     setVoiceStatus(
         "YUVA is speaking...",
         "speaking",
         true
     );
 
+    let index = 0;
 
     function next() {
-
         if (
             index >=
             segments.length
         ) {
-
             finishSpeaking();
-
             return;
         }
 
-
         const segment =
-            segments[index];
+            segments[index++];
 
-        index++;
-
-
-        speakPerformanceSegment(
+        performSegment(
             segment,
             next
         );
     }
 
-
     next();
 }
 
-// ========================================
+
+// ============================================================
 // FINISH SPEAKING
-// ========================================
+// ============================================================
 
 function finishSpeaking() {
-
     isSpeaking = false;
 
-    if (micButton) {
+    voicePerformanceMode =
+        "normal";
 
+    if (micButton) {
         micButton.classList.remove(
             "speaking"
         );
 
         if (!isListening) {
-
             micButton.textContent =
                 "🎤";
         }
@@ -2066,29 +1968,29 @@ function finishSpeaking() {
     );
 }
 
-// ========================================
+
+// ============================================================
 // STOP SPEAKING
-// ========================================
+// ============================================================
 
 function stopSpeaking() {
-
     if (
         "speechSynthesis" in window
     ) {
-
         window.speechSynthesis.cancel();
     }
 
     isSpeaking = false;
 
-    if (micButton) {
+    voicePerformanceMode =
+        "normal";
 
+    if (micButton) {
         micButton.classList.remove(
             "speaking"
         );
 
         if (!isListening) {
-
             micButton.textContent =
                 "🎤";
         }
@@ -2101,26 +2003,13 @@ function stopSpeaking() {
     );
 }
 
-// ========================================
-// STOP SPEAKING BUTTON
-// ========================================
 
-if (stopSpeakingButton) {
-
-    stopSpeakingButton.addEventListener(
-        "click",
-        stopSpeaking
-    );
-}
-
-// ========================================
+// ============================================================
 // CLEAR MEMORY
-// ========================================
+// ============================================================
 
 async function clearMemory() {
-
     try {
-
         await fetch(
             "/clear-memory",
             {
@@ -2139,14 +2028,15 @@ async function clearMemory() {
         );
 
     } catch (error) {
-
         console.error(
             "Clear memory error:",
             error
         );
     }
 
-    chat.innerHTML = "";
+    if (chat) {
+        chat.innerHTML = "";
+    }
 
     addMessage(
         "Memory cleared. Starting fresh! 🧠✨",
@@ -2154,16 +2044,14 @@ async function clearMemory() {
     );
 }
 
-// ========================================
+
+// ============================================================
 // LOGOUT
-// ========================================
+// ============================================================
 
 async function creatorLogout() {
-
     try {
-
         if (creatorToken) {
-
             await fetch(
                 "/logout",
                 {
@@ -2183,7 +2071,6 @@ async function creatorLogout() {
         }
 
     } catch (error) {
-
         console.error(
             "Logout error:",
             error
@@ -2209,18 +2096,17 @@ async function creatorLogout() {
     location.reload();
 }
 
-// ========================================
+
+// ============================================================
 // CHECK EXISTING SESSION
-// ========================================
+// ============================================================
 
 async function checkExistingSession() {
-
     if (!creatorToken) {
         return;
     }
 
     try {
-
         const response =
             await fetch(
                 "/verify-creator",
@@ -2246,7 +2132,6 @@ async function checkExistingSession() {
             data.success &&
             data.authenticated
         ) {
-
             currentRole =
                 data.role;
 
@@ -2263,20 +2148,29 @@ async function checkExistingSession() {
                 currentName
             );
 
-            document.getElementById(
-                "loginScreen"
-            ).style.display =
-                "none";
+            const loginScreen =
+                document.getElementById(
+                    "loginScreen"
+                );
 
-            document.getElementById(
-                "app"
-            ).style.display =
-                "flex";
+            const app =
+                document.getElementById(
+                    "app"
+                );
+
+            if (loginScreen) {
+                loginScreen.style.display =
+                    "none";
+            }
+
+            if (app) {
+                app.style.display =
+                    "flex";
+            }
 
             updateRoleUI();
 
         } else {
-
             creatorToken = null;
 
             localStorage.removeItem(
@@ -2293,7 +2187,6 @@ async function checkExistingSession() {
         }
 
     } catch (error) {
-
         console.error(
             "Session check failed:",
             error
@@ -2301,21 +2194,20 @@ async function checkExistingSession() {
     }
 }
 
-// ========================================
+
+// ============================================================
 // INITIALIZE
-// ========================================
+// ============================================================
 
 document.addEventListener(
     "DOMContentLoaded",
     function () {
-
         const app =
             document.getElementById(
                 "app"
             );
 
         if (app) {
-
             app.style.display =
                 "none";
         }
@@ -2323,12 +2215,121 @@ document.addEventListener(
         checkExistingSession();
 
         updateVoiceToggleUI();
+
+        installYuvaVisualEnhancements();
     }
 );
 
-// ========================================
+
+// ============================================================
+// VISUAL ENHANCEMENTS
+// ============================================================
+
+function installYuvaVisualEnhancements() {
+    if (!document.getElementById(
+        "yuva-script-enhancements"
+    )) {
+        const style =
+            document.createElement(
+                "style"
+            );
+
+        style.id =
+            "yuva-script-enhancements";
+
+        style.textContent = `
+            .yuva-message-enter {
+                opacity: 0;
+                transform:
+                    translateY(10px)
+                    scale(0.985);
+                transition:
+                    opacity 260ms ease,
+                    transform 260ms ease;
+            }
+
+            .yuva-message-enter.yuva-message-visible {
+                opacity: 1;
+                transform:
+                    translateY(0)
+                    scale(1);
+            }
+
+            .message-actions {
+                display: flex;
+                align-items: center;
+                gap: 6px;
+            }
+
+            .speak-message-button {
+                border: 0;
+                background: transparent;
+                cursor: pointer;
+                padding: 4px 6px;
+                opacity: 0.65;
+                transition:
+                    opacity 160ms ease,
+                    transform 160ms ease;
+            }
+
+            .speak-message-button:hover {
+                opacity: 1;
+                transform: scale(1.08);
+            }
+
+            .thinking-content {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+            }
+
+            .thinking-dots {
+                display: inline-flex;
+                gap: 3px;
+                align-items: center;
+            }
+
+            .thinking-dots span {
+                width: 4px;
+                height: 4px;
+                border-radius: 50%;
+                background: currentColor;
+                animation:
+                    yuvaThinkingDot 1.2s
+                    infinite ease-in-out;
+            }
+
+            .thinking-dots span:nth-child(2) {
+                animation-delay: 0.15s;
+            }
+
+            .thinking-dots span:nth-child(3) {
+                animation-delay: 0.3s;
+            }
+
+            @keyframes yuvaThinkingDot {
+                0%, 60%, 100% {
+                    opacity: 0.3;
+                    transform: translateY(0);
+                }
+
+                30% {
+                    opacity: 1;
+                    transform: translateY(-3px);
+                }
+            }
+        `;
+
+        document.head.appendChild(
+            style
+        );
+    }
+}
+
+
+// ============================================================
 // CURSOR / TOUCH GLOW
-// ========================================
+// ============================================================
 
 const cursorGlow =
     document.getElementById(
@@ -2336,11 +2337,9 @@ const cursorGlow =
     );
 
 if (cursorGlow) {
-
     document.addEventListener(
         "pointermove",
         function (event) {
-
             cursorGlow.style.left =
                 event.clientX + "px";
 
@@ -2355,7 +2354,6 @@ if (cursorGlow) {
     document.addEventListener(
         "pointerleave",
         function () {
-
             cursorGlow.style.opacity =
                 "0";
         }
