@@ -541,16 +541,14 @@ function speakMessageButton(button) {
 }
 
 
-// ============================================================
-// THINKING INDICATOR
-// ============================================================
+// ========================================
+// YUVA THINKING INDICATOR
+// ========================================
 
 function addTypingMessage() {
-    if (!chat) return null;
 
     const id =
-        "typing-" +
-        Date.now();
+        "typing-" + Date.now();
 
     const messageDiv =
         document.createElement("div");
@@ -558,7 +556,7 @@ function addTypingMessage() {
     messageDiv.id = id;
 
     messageDiv.className =
-        "message ai yuva-message-enter";
+        "message ai";
 
     messageDiv.innerHTML = `
         <div class="avatar">
@@ -586,20 +584,22 @@ function addTypingMessage() {
         </div>
     `;
 
-    chat.appendChild(
-        messageDiv
-    );
+    chat.appendChild(messageDiv);
 
-    requestAnimationFrame(() => {
-        messageDiv.classList.add(
-            "yuva-message-visible"
-        );
-    });
-
-    chat.scrollTop =
-        chat.scrollHeight;
+    chat.scrollTop = chat.scrollHeight;
 
     return id;
+}
+
+
+function removeTypingMessage(id) {
+
+    const element =
+        document.getElementById(id);
+
+    if (element) {
+        element.remove();
+    }
 }
 
 
@@ -2192,6 +2192,1090 @@ async function checkExistingSession() {
             error
         );
     }
+}
+
+// ============================================================
+// YUVA VOICE EXPERIENCE PANEL
+// ============================================================
+
+let autoSpeakEnabled =
+    localStorage.getItem("yuva_auto_speak") !== "false";
+
+let voiceSettings = {
+    rate:
+        Number(
+            localStorage.getItem("yuva_voice_rate")
+        ) || 1,
+
+    pitch:
+        Number(
+            localStorage.getItem("yuva_voice_pitch")
+        ) || 1,
+
+    volume:
+        Number(
+            localStorage.getItem("yuva_voice_volume")
+        ) || 1
+};
+
+
+// ============================================================
+// BUILD VOICE EXPERIENCE PANEL
+// ============================================================
+
+function buildVoiceExperiencePanel() {
+
+    // Prevent duplicate panel
+    if (
+        document.getElementById(
+            "yuvaVoiceExperienceCard"
+        )
+    ) {
+        return;
+    }
+
+
+    // --------------------------------------------------------
+    // PANEL STYLES
+    // --------------------------------------------------------
+
+    const style =
+        document.createElement("style");
+
+    style.textContent = `
+
+        .yuva-voice-fab {
+
+            position: fixed;
+
+            right: 22px;
+            bottom: 22px;
+
+            width: 56px;
+            height: 56px;
+
+            border: 1px solid
+                rgba(255,255,255,.14);
+
+            border-radius: 50%;
+
+            background:
+                rgba(20,20,30,.88);
+
+            color: white;
+
+            font-size: 23px;
+
+            cursor: pointer;
+
+            display: flex;
+
+            align-items: center;
+
+            justify-content: center;
+
+            backdrop-filter:
+                blur(18px);
+
+            -webkit-backdrop-filter:
+                blur(18px);
+
+            box-shadow:
+                0 12px 35px
+                rgba(0,0,0,.35);
+
+            z-index: 9998;
+
+            transition:
+                transform .2s ease,
+                box-shadow .2s ease,
+                background .2s ease;
+        }
+
+
+        .yuva-voice-fab:hover {
+
+            transform:
+                translateY(-3px)
+                scale(1.04);
+
+            box-shadow:
+                0 18px 45px
+                rgba(0,0,0,.45);
+        }
+
+
+        .yuva-voice-fab.active {
+
+            transform:
+                scale(1.08);
+
+            box-shadow:
+                0 0 0 6px
+                rgba(150,120,255,.12),
+                0 18px 45px
+                rgba(0,0,0,.45);
+        }
+
+
+        .yuva-voice-card {
+
+            position: fixed;
+
+            right: 22px;
+            bottom: 90px;
+
+            width: 310px;
+
+            padding: 17px;
+
+            border:
+                1px solid
+                rgba(255,255,255,.12);
+
+            border-radius: 18px;
+
+            background:
+                rgba(20,20,30,.94);
+
+            color: white;
+
+            backdrop-filter:
+                blur(20px);
+
+            -webkit-backdrop-filter:
+                blur(20px);
+
+            box-shadow:
+                0 20px 60px
+                rgba(0,0,0,.38);
+
+            z-index: 9997;
+
+            transform:
+                translateY(10px)
+                scale(.97);
+
+            opacity: 0;
+
+            pointer-events: none;
+
+            transition:
+                opacity .2s ease,
+                transform .2s ease;
+        }
+
+
+        .yuva-voice-card.open {
+
+            opacity: 1;
+
+            transform:
+                translateY(0)
+                scale(1);
+
+            pointer-events: auto;
+        }
+
+
+        .yuva-voice-head {
+
+            display: flex;
+
+            align-items: center;
+
+            justify-content:
+                space-between;
+
+            gap: 12px;
+
+            margin-bottom: 14px;
+        }
+
+
+        .yuva-voice-title {
+
+            font-weight: 700;
+
+            font-size: 15px;
+        }
+
+
+        .yuva-voice-sub {
+
+            font-size: 11px;
+
+            opacity: .58;
+
+            margin-top: 2px;
+        }
+
+
+        .yuva-voice-status {
+
+            font-size: 11px;
+
+            padding:
+                5px 8px;
+
+            border-radius:
+                999px;
+
+            background:
+                rgba(255,255,255,.08);
+
+            white-space:
+                nowrap;
+        }
+
+
+        .yuva-voice-status.live {
+
+            background:
+                rgba(90,220,150,.13);
+
+            color:
+                #a8ffd0;
+        }
+
+
+        .yuva-voice-row {
+
+            margin:
+                13px 0;
+        }
+
+
+        .yuva-voice-label {
+
+            display: flex;
+
+            justify-content:
+                space-between;
+
+            font-size: 12px;
+
+            opacity: .82;
+
+            margin-bottom: 7px;
+        }
+
+
+        .yuva-voice-range {
+
+            width: 100%;
+
+            cursor: pointer;
+        }
+
+
+        .yuva-voice-select {
+
+            width: 100%;
+
+            box-sizing: border-box;
+
+            padding:
+                9px 10px;
+
+            border:
+                1px solid
+                rgba(255,255,255,.12);
+
+            border-radius:
+                11px;
+
+            background:
+                rgba(255,255,255,.06);
+
+            color: inherit;
+
+            outline: none;
+        }
+
+
+        .yuva-voice-select option {
+
+            background:
+                #17171f;
+
+            color:
+                #fff;
+        }
+
+
+        .yuva-voice-actions {
+
+            display: grid;
+
+            grid-template-columns:
+                1fr 1fr;
+
+            gap: 8px;
+
+            margin-top: 14px;
+        }
+
+
+        .yuva-voice-btn {
+
+            border:
+                1px solid
+                rgba(255,255,255,.11);
+
+            border-radius:
+                11px;
+
+            padding:
+                10px;
+
+            background:
+                rgba(255,255,255,.06);
+
+            color:
+                #fff;
+
+            cursor:
+                pointer;
+        }
+
+
+        .yuva-voice-btn:hover {
+
+            background:
+                rgba(255,255,255,.10);
+        }
+
+
+        .yuva-voice-btn.danger {
+
+            background:
+                rgba(255,80,100,.10);
+        }
+
+
+        .yuva-voice-switch {
+
+            display: flex;
+
+            align-items: center;
+
+            justify-content:
+                space-between;
+
+            padding:
+                10px 0;
+
+            font-size: 12px;
+        }
+
+
+        .yuva-switch {
+
+            width: 42px;
+
+            height: 24px;
+
+            border-radius:
+                999px;
+
+            border: 0;
+
+            padding: 3px;
+
+            background:
+                rgba(255,255,255,.16);
+
+            cursor:
+                pointer;
+        }
+
+
+        .yuva-switch span {
+
+            display: block;
+
+            width: 18px;
+
+            height: 18px;
+
+            border-radius:
+                50%;
+
+            background:
+                #fff;
+
+            transition:
+                transform .18s ease;
+        }
+
+
+        .yuva-switch.on {
+
+            background:
+                rgba(100,220,160,.55);
+        }
+
+
+        .yuva-switch.on span {
+
+            transform:
+                translateX(18px);
+        }
+
+
+        @media (max-width:600px) {
+
+            .yuva-voice-fab {
+
+                right: 14px;
+                bottom: 14px;
+            }
+
+            .yuva-voice-card {
+
+                right: 14px;
+                bottom: 78px;
+
+                width:
+                    calc(100vw - 28px);
+
+                box-sizing:
+                    border-box;
+            }
+        }
+
+    `;
+
+    document.head.appendChild(style);
+
+
+    // ========================================================
+    // FLOATING BUTTON
+    // ========================================================
+
+    const fab =
+        document.createElement("button");
+
+    fab.type = "button";
+
+    fab.className =
+        "yuva-voice-fab";
+
+    fab.id =
+        "yuvaVoiceFab";
+
+    fab.title =
+        "Voice controls";
+
+    fab.textContent =
+        "🎙️";
+
+
+    // ========================================================
+    // VOICE CARD
+    // ========================================================
+
+    const card =
+        document.createElement("div");
+
+    card.className =
+        "yuva-voice-card";
+
+    card.id =
+        "yuvaVoiceExperienceCard";
+
+
+    card.innerHTML = `
+
+        <div class="yuva-voice-head">
+
+            <div>
+
+                <div class="yuva-voice-title">
+                    YUVA Voice
+                </div>
+
+                <div class="yuva-voice-sub">
+                    Control how YUVA sounds
+                </div>
+
+            </div>
+
+            <div
+                class="yuva-voice-status"
+                id="yuvaVoiceMiniStatus"
+            >
+                Ready
+            </div>
+
+        </div>
+
+
+        <div class="yuva-voice-row">
+
+            <div class="yuva-voice-label">
+
+                <span>
+                    Voice
+                </span>
+
+            </div>
+
+            <select
+                class="yuva-voice-select"
+                id="yuvaVoiceSelect"
+            >
+
+                <option value="">
+                    ✨ Default Voice
+                </option>
+
+            </select>
+
+        </div>
+
+
+        <div class="yuva-voice-row">
+
+            <div class="yuva-voice-label">
+
+                <span>
+                    Speed
+                </span>
+
+                <span id="yuvaRateValue">
+                    1.00×
+                </span>
+
+            </div>
+
+            <input
+                class="yuva-voice-range"
+                id="yuvaRate"
+                type="range"
+                min="0.6"
+                max="1.4"
+                step="0.05"
+            >
+
+        </div>
+
+
+        <div class="yuva-voice-row">
+
+            <div class="yuva-voice-label">
+
+                <span>
+                    Pitch
+                </span>
+
+                <span id="yuvaPitchValue">
+                    1.00×
+                </span>
+
+            </div>
+
+            <input
+                class="yuva-voice-range"
+                id="yuvaPitch"
+                type="range"
+                min="0.75"
+                max="1.3"
+                step="0.05"
+            >
+
+        </div>
+
+
+        <div class="yuva-voice-row">
+
+            <div class="yuva-voice-label">
+
+                <span>
+                    Volume
+                </span>
+
+                <span id="yuvaVolumeValue">
+                    100%
+                </span>
+
+            </div>
+
+            <input
+                class="yuva-voice-range"
+                id="yuvaVolume"
+                type="range"
+                min="0.1"
+                max="1"
+                step="0.05"
+            >
+
+        </div>
+
+
+        <div class="yuva-voice-switch">
+
+            <span>
+                Auto-speak replies
+            </span>
+
+            <button
+                class="yuva-switch"
+                id="yuvaAutoSpeak"
+                type="button"
+                aria-label="Toggle auto speak"
+            >
+
+                <span></span>
+
+            </button>
+
+        </div>
+
+
+        <div class="yuva-voice-actions">
+
+            <button
+                class="yuva-voice-btn"
+                id="yuvaTestVoice"
+                type="button"
+            >
+                🔊 Test voice
+            </button>
+
+            <button
+                class="yuva-voice-btn danger"
+                id="yuvaStopVoice"
+                type="button"
+            >
+                ⏹ Stop
+            </button>
+
+        </div>
+
+    `;
+
+
+    document.body.appendChild(card);
+
+    document.body.appendChild(fab);
+
+
+    // ========================================================
+    // ELEMENT REFERENCES
+    // ========================================================
+
+    const miniStatus =
+        document.getElementById(
+            "yuvaVoiceMiniStatus"
+        );
+
+    const rate =
+        document.getElementById(
+            "yuvaRate"
+        );
+
+    const pitch =
+        document.getElementById(
+            "yuvaPitch"
+        );
+
+    const volume =
+        document.getElementById(
+            "yuvaVolume"
+        );
+
+    const rateValue =
+        document.getElementById(
+            "yuvaRateValue"
+        );
+
+    const pitchValue =
+        document.getElementById(
+            "yuvaPitchValue"
+        );
+
+    const volumeValue =
+        document.getElementById(
+            "yuvaVolumeValue"
+        );
+
+    const autoSpeak =
+        document.getElementById(
+            "yuvaAutoSpeak"
+        );
+
+    const panelSelect =
+        document.getElementById(
+            "yuvaVoiceSelect"
+        );
+
+
+    // ========================================================
+    // INITIAL VALUES
+    // ========================================================
+
+    rate.value =
+        voiceSettings.rate;
+
+    pitch.value =
+        voiceSettings.pitch;
+
+    volume.value =
+        voiceSettings.volume;
+
+
+    // ========================================================
+    // AUTO SPEAK SWITCH
+    // ========================================================
+
+    function syncSwitch() {
+
+        autoSpeak.classList.toggle(
+            "on",
+            autoSpeakEnabled
+        );
+    }
+
+
+    // ========================================================
+    // RANGE LABELS
+    // ========================================================
+
+    function syncLabels() {
+
+        rateValue.textContent =
+            `${Number(
+                voiceSettings.rate
+            ).toFixed(2)}×`;
+
+        pitchValue.textContent =
+            `${Number(
+                voiceSettings.pitch
+            ).toFixed(2)}×`;
+
+        volumeValue.textContent =
+            `${Math.round(
+                Number(
+                    voiceSettings.volume
+                ) * 100
+            )}%`;
+    }
+
+
+    // ========================================================
+    // POPULATE VOICES
+    // ========================================================
+
+    function populatePanelVoices() {
+
+        panelSelect.innerHTML =
+            `<option value="">
+                ✨ Default Voice
+            </option>`;
+
+
+        voices.forEach(
+            (voice, index) => {
+
+                const option =
+                    document.createElement(
+                        "option"
+                    );
+
+                option.value =
+                    index;
+
+                option.textContent =
+                    `${voice.name} • ${voice.lang}`;
+
+                panelSelect.appendChild(
+                    option
+                );
+            }
+        );
+
+
+        const saved =
+            localStorage.getItem(
+                "yuva_selected_voice"
+            );
+
+
+        if (
+            saved !== null &&
+            voices[saved]
+        ) {
+
+            panelSelect.value =
+                saved;
+        }
+    }
+
+
+    // ========================================================
+    // SPEED
+    // ========================================================
+
+    rate.addEventListener(
+        "input",
+        function () {
+
+            voiceSettings.rate =
+                Number(
+                    rate.value
+                );
+
+            localStorage.setItem(
+                "yuva_voice_rate",
+                voiceSettings.rate
+            );
+
+            syncLabels();
+        }
+    );
+
+
+    // ========================================================
+    // PITCH
+    // ========================================================
+
+    pitch.addEventListener(
+        "input",
+        function () {
+
+            voiceSettings.pitch =
+                Number(
+                    pitch.value
+                );
+
+            localStorage.setItem(
+                "yuva_voice_pitch",
+                voiceSettings.pitch
+            );
+
+            syncLabels();
+        }
+    );
+
+
+    // ========================================================
+    // VOLUME
+    // ========================================================
+
+    volume.addEventListener(
+        "input",
+        function () {
+
+            voiceSettings.volume =
+                Number(
+                    volume.value
+                );
+
+            localStorage.setItem(
+                "yuva_voice_volume",
+                voiceSettings.volume
+            );
+
+            syncLabels();
+        }
+    );
+
+
+    // ========================================================
+    // VOICE SELECT
+    // ========================================================
+
+    panelSelect.addEventListener(
+        "change",
+        function () {
+
+            localStorage.setItem(
+                "yuva_selected_voice",
+                panelSelect.value
+            );
+
+
+            if (voiceSelect) {
+
+                voiceSelect.value =
+                    panelSelect.value;
+            }
+
+
+            setVoiceStatus(
+                "Voice selected",
+                "",
+                true
+            );
+
+
+            setTimeout(
+                function () {
+
+                    if (!isSpeaking) {
+
+                        setVoiceStatus(
+                            "Ready",
+                            "",
+                            false
+                        );
+                    }
+
+                },
+                1000
+            );
+        }
+    );
+
+
+    // ========================================================
+    // AUTO SPEAK
+    // ========================================================
+
+    autoSpeak.addEventListener(
+        "click",
+        function () {
+
+            autoSpeakEnabled =
+                !autoSpeakEnabled;
+
+
+            localStorage.setItem(
+                "yuva_auto_speak",
+                autoSpeakEnabled
+            );
+
+
+            syncSwitch();
+        }
+    );
+
+
+    // ========================================================
+    // TEST VOICE
+    // ========================================================
+
+    document
+        .getElementById(
+            "yuvaTestVoice"
+        )
+        .addEventListener(
+            "click",
+            function () {
+
+                if (!voiceOutputEnabled) {
+
+                    voiceOutputEnabled =
+                        true;
+
+                    localStorage.setItem(
+                        "yuva_voice_output",
+                        "true"
+                    );
+
+                    updateVoiceToggleUI();
+                }
+
+
+                speakReply(
+                    "*chuckles softly* Hello. This is YUVA's voice test. *pause* Ummmm... I am ready."
+                );
+            }
+        );
+
+
+    // ========================================================
+    // STOP
+    // ========================================================
+
+    document
+        .getElementById(
+            "yuvaStopVoice"
+        )
+        .addEventListener(
+            "click",
+            function () {
+
+                stopSpeaking();
+            }
+        );
+
+
+    // ========================================================
+    // OPEN / CLOSE PANEL
+    // ========================================================
+
+    fab.addEventListener(
+        "click",
+        function () {
+
+            const open =
+                card.classList.toggle(
+                    "open"
+                );
+
+
+            fab.classList.toggle(
+                "active",
+                open
+            );
+
+
+            if (open) {
+
+                populatePanelVoices();
+            }
+        }
+    );
+
+
+    // ========================================================
+    // LIVE STATUS
+    // ========================================================
+
+    setInterval(
+        function () {
+
+            if (!miniStatus) {
+                return;
+            }
+
+
+            const activeText =
+                voiceStatusText
+                    ? voiceStatusText.textContent
+                    : (
+                        isSpeaking
+                            ? "YUVA is speaking..."
+                            : isListening
+                                ? "Listening..."
+                                : "Ready"
+                    );
+
+
+            miniStatus.textContent =
+                activeText ||
+                "Ready";
+
+
+            miniStatus.classList.toggle(
+                "live",
+                isSpeaking ||
+                isListening
+            );
+
+        },
+        250
+    );
+
+
+    syncLabels();
+
+    syncSwitch();
+
+    populatePanelVoices();
 }
 
 

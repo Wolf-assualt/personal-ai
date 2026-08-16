@@ -3272,3 +3272,318 @@ body::before {
     align-items: center;
     justify-content: center;
 }
+
+
+/* ============================================================
+   YUVA AI — FINAL MESSAGE MOTION UPGRADE
+   This block intentionally comes last so it overrides older
+   duplicate message animation rules in the stylesheet.
+   ============================================================ */
+
+.message {
+    animation: yuvaFinalMessageIn 0.48s cubic-bezier(0.22, 1, 0.36, 1) both !important;
+    will-change: transform, opacity, filter;
+}
+
+.message.ai {
+    transform-origin: left bottom;
+}
+
+.message.user {
+    transform-origin: right bottom;
+    animation: yuvaFinalUserIn 0.34s cubic-bezier(0.22, 1, 0.36, 1) both !important;
+}
+
+.message.ai .bubble {
+    animation: yuvaFinalBubbleIn 0.55s ease-out both;
+}
+
+.message.ai .avatar {
+    animation: yuvaFinalAvatarIn 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes yuvaFinalMessageIn {
+    0% {
+        opacity: 0;
+        transform: translate3d(0, 14px, 0) scale(0.965);
+        filter: blur(4px);
+    }
+
+    55% {
+        opacity: 1;
+        transform: translate3d(0, -2px, 0) scale(1.008);
+        filter: blur(0);
+    }
+
+    100% {
+        opacity: 1;
+        transform: translate3d(0, 0, 0) scale(1);
+        filter: blur(0);
+    }
+}
+
+@keyframes yuvaFinalUserIn {
+    0% {
+        opacity: 0;
+        transform: translate3d(0, 9px, 0) scale(0.975);
+    }
+
+    100% {
+        opacity: 1;
+        transform: translate3d(0, 0, 0) scale(1);
+    }
+}
+
+@keyframes yuvaFinalBubbleIn {
+    0% {
+        opacity: 0;
+        box-shadow: 0 0 0 rgba(124, 92, 255, 0);
+    }
+
+    45% {
+        opacity: 1;
+        box-shadow:
+            0 0 24px rgba(124, 92, 255, 0.10),
+            0 10px 32px rgba(0, 0, 0, 0.16);
+    }
+
+    100% {
+        opacity: 1;
+        box-shadow:
+            0 8px 25px rgba(0, 0, 0, 0.12);
+    }
+}
+
+@keyframes yuvaFinalAvatarIn {
+    0% {
+        opacity: 0;
+        transform: scale(0.72);
+    }
+
+    65% {
+        opacity: 1;
+        transform: scale(1.08);
+    }
+
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+/* Make the existing thinking indicator feel alive without
+   affecting the final response animation. */
+.thinking-bubble {
+    animation:
+        yuvaThinkingFloat 1.8s ease-in-out infinite !important;
+}
+
+@keyframes yuvaThinkingFloat {
+    0%, 100% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(-2px);
+    }
+}
+
+/* Small-screen tuning */
+@media (max-width: 600px) {
+    .message {
+        animation-duration: 0.42s !important;
+    }
+
+    .message.ai .bubble {
+        animation-duration: 0.48s;
+    }
+}
+
+/* Respect accessibility preferences */
+@media (prefers-reduced-motion: reduce) {
+    .message,
+    .message.ai,
+    .message.user,
+    .message.ai .bubble,
+    .message.ai .avatar,
+    .thinking-bubble {
+        animation: none !important;
+        filter: none !important;
+        transform: none !important;
+    }
+}
+
+
+/* ============================================================
+   YUVA — HIGH-VISIBILITY CHAT EXPERIENCE
+   Noticeable response motion + live AI state
+   ============================================================ */
+
+/* Strong response entrance */
+.message.ai {
+    animation:
+        yuvaResponseIn 0.65s cubic-bezier(0.16, 1, 0.3, 1) both !important;
+}
+
+@keyframes yuvaResponseIn {
+    0% {
+        opacity: 0;
+        transform: translateY(28px) scale(0.94);
+        filter: blur(10px);
+    }
+
+    45% {
+        opacity: 1;
+        transform: translateY(-5px) scale(1.015);
+        filter: blur(1px);
+    }
+
+    72% {
+        transform: translateY(2px) scale(0.997);
+        filter: blur(0);
+    }
+
+    100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+        filter: blur(0);
+    }
+}
+
+/* AI bubble gets a clearly visible arrival pulse */
+.message.ai .bubble {
+    animation: yuvaBubblePulse 0.9s ease-out both !important;
+}
+
+@keyframes yuvaBubblePulse {
+    0% {
+        box-shadow:
+            0 0 0 rgba(124, 92, 255, 0),
+            0 0 0 rgba(80, 180, 255, 0);
+    }
+
+    35% {
+        box-shadow:
+            0 0 32px rgba(124, 92, 255, 0.28),
+            0 0 60px rgba(80, 180, 255, 0.12);
+    }
+
+    100% {
+        box-shadow:
+            0 8px 28px rgba(0, 0, 0, 0.14);
+    }
+}
+
+/* AI avatar has an obvious activation pulse */
+.message.ai .avatar {
+    animation: yuvaAvatarPulse 0.75s cubic-bezier(0.16, 1, 0.3, 1) both !important;
+}
+
+@keyframes yuvaAvatarPulse {
+    0% {
+        opacity: 0;
+        transform: scale(0.55) rotate(-12deg);
+        filter: blur(4px);
+    }
+
+    55% {
+        opacity: 1;
+        transform: scale(1.18) rotate(3deg);
+        filter: blur(0);
+    }
+
+    100% {
+        opacity: 1;
+        transform: scale(1) rotate(0);
+    }
+}
+
+/* User messages remain quick but visible */
+.message.user {
+    animation: yuvaUserResponseIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) both !important;
+}
+
+@keyframes yuvaUserResponseIn {
+    0% {
+        opacity: 0;
+        transform: translateX(18px) scale(0.96);
+    }
+
+    100% {
+        opacity: 1;
+        transform: translateX(0) scale(1);
+    }
+}
+
+/* Thinking state becomes much more obvious */
+.thinking-bubble {
+    animation: yuvaThinkingPulse 1.25s ease-in-out infinite !important;
+}
+
+@keyframes yuvaThinkingPulse {
+    0%, 100% {
+        transform: translateY(0) scale(1);
+        opacity: 0.78;
+    }
+
+    50% {
+        transform: translateY(-4px) scale(1.015);
+        opacity: 1;
+    }
+}
+
+.thinking-dots span {
+    animation: yuvaDot 1.15s ease-in-out infinite !important;
+}
+
+.thinking-dots span:nth-child(2) {
+    animation-delay: 0.16s !important;
+}
+
+.thinking-dots span:nth-child(3) {
+    animation-delay: 0.32s !important;
+}
+
+@keyframes yuvaDot {
+    0%, 60%, 100% {
+        transform: translateY(0) scale(0.75);
+        opacity: 0.35;
+    }
+
+    30% {
+        transform: translateY(-5px) scale(1.2);
+        opacity: 1;
+    }
+}
+
+/* AI avatar core continuously breathes when present */
+.ai-avatar-core {
+    animation: yuvaCoreBreath 2s ease-in-out infinite;
+}
+
+@keyframes yuvaCoreBreath {
+    0%, 100% {
+        transform: scale(0.92);
+        opacity: 0.8;
+    }
+
+    50% {
+        transform: scale(1.08);
+        opacity: 1;
+    }
+}
+
+/* Disable motion only when the OS explicitly requests it */
+@media (prefers-reduced-motion: reduce) {
+    .message.ai,
+    .message.user,
+    .message.ai .bubble,
+    .message.ai .avatar,
+    .thinking-bubble,
+    .thinking-dots span,
+    .ai-avatar-core {
+        animation: none !important;
+        filter: none !important;
+        transform: none !important;
+    }
+}
