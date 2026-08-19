@@ -269,7 +269,8 @@ async function sendMessage() {
             "ai"
         );
 
-        // Auto speak only when enabled
+        // Auto speak is controlled ONLY
+        // by the Voice Experience settings.
         if (autoSpeakEnabled) {
             speakReply(data.reply);
         }
@@ -1232,7 +1233,6 @@ function getPerformanceCue(cue) {
             .trim()
             .toLowerCase();
 
-    // CHUCKLE
     if (
         value.includes("chuckle") ||
         value.includes("chuckles")
@@ -1242,7 +1242,6 @@ function getPerformanceCue(cue) {
         };
     }
 
-    // LAUGH
     if (
         value.includes("laugh") ||
         value.includes("laughs") ||
@@ -1258,7 +1257,6 @@ function getPerformanceCue(cue) {
         };
     }
 
-    // GIGGLE
     if (
         value.includes("giggle") ||
         value.includes("giggles") ||
@@ -1269,7 +1267,6 @@ function getPerformanceCue(cue) {
         };
     }
 
-    // SIGH
     if (
         value.includes("sigh") ||
         value.includes("sighs") ||
@@ -1280,7 +1277,6 @@ function getPerformanceCue(cue) {
         };
     }
 
-    // WHISPER
     if (
         value.includes("whisper") ||
         value.includes("whispers") ||
@@ -1291,7 +1287,6 @@ function getPerformanceCue(cue) {
         };
     }
 
-    // PAUSE
     if (
         value.includes("pause") ||
         value.includes("wait") ||
@@ -1303,7 +1298,6 @@ function getPerformanceCue(cue) {
         };
     }
 
-    // BREATH
     if (
         value.includes("breath") ||
         value.includes("inhale") ||
@@ -1314,7 +1308,6 @@ function getPerformanceCue(cue) {
         };
     }
 
-    // SMILE
     if (
         value.includes("smile") ||
         value.includes("smiles") ||
@@ -1325,7 +1318,6 @@ function getPerformanceCue(cue) {
         };
     }
 
-    // NOD
     if (
         value.includes("nod") ||
         value.includes("nods") ||
@@ -1336,7 +1328,6 @@ function getPerformanceCue(cue) {
         };
     }
 
-    // OTHER ACTION
     if (
         value.includes("leans") ||
         value.includes("lean") ||
@@ -1356,24 +1347,6 @@ function getPerformanceCue(cue) {
 
 // ============================================================
 // PARSE PERFORMANCE CUES
-//
-// NOW SUPPORTS BOTH:
-//
-// *laughs*
-// **laughs**
-//
-// *chuckles softly*
-// **chuckles softly**
-//
-// *pause*
-// **pause**
-//
-// AND MIXED:
-//
-// Hello there *chuckles* that's funny.
-//
-// IMPORTANT:
-// Normal **bold text** remains normal speech.
 // ============================================================
 
 function parsePerformance(text) {
@@ -1383,18 +1356,6 @@ function parsePerformance(text) {
     if (!text) return segments;
 
     let lastIndex = 0;
-
-    /*
-     * Match:
-     *
-     *single*
-     *
-     *double*
-     *
-     * But we only turn it into a performance
-     * cue when the inside text is actually
-     * recognized as a cue.
-     */
 
     const regex =
         /(\*\*|\*)([\s\S]*?)\1/g;
@@ -1413,17 +1374,6 @@ function parsePerformance(text) {
 
         const cue =
             getPerformanceCue(cueText);
-
-        /*
-         * If it is NOT a known performance cue,
-         * keep it as normal text.
-         *
-         * This means:
-         *
-         * **hello**
-         *
-         * will NOT disappear.
-         */
 
         if (!cue) {
             continue;
@@ -1708,7 +1658,6 @@ function performSegment(
         return;
     }
 
-    // NORMAL TEXT
     if (
         segment.type === "text"
     ) {
@@ -1763,7 +1712,6 @@ function performSegment(
         return;
     }
 
-    // ACTION
     if (
         segment.type === "action"
     ) {
@@ -1776,7 +1724,6 @@ function performSegment(
         return;
     }
 
-    // PAUSE
     if (
         segment.type === "pause"
     ) {
@@ -1789,7 +1736,6 @@ function performSegment(
         return;
     }
 
-    // CHUCKLE
     if (
         segment.type === "chuckle"
     ) {
@@ -1813,7 +1759,6 @@ function performSegment(
         return;
     }
 
-    // LAUGH
     if (
         segment.type === "laugh"
     ) {
@@ -1853,7 +1798,6 @@ function performSegment(
         return;
     }
 
-    // GIGGLE
     if (
         segment.type === "giggle"
     ) {
@@ -1877,7 +1821,6 @@ function performSegment(
         return;
     }
 
-    // SIGH
     if (
         segment.type === "sigh"
     ) {
@@ -1901,7 +1844,6 @@ function performSegment(
         return;
     }
 
-    // BREATH
     if (
         segment.type === "breath"
     ) {
@@ -1925,7 +1867,6 @@ function performSegment(
         return;
     }
 
-    // WHISPER
     if (
         segment.type === "whisper"
     ) {
@@ -2318,59 +2259,110 @@ function buildVoiceExperiencePanel() {
 
     style.textContent = `
 
+        /*
+         * =====================================================
+         * YUVA VOICE FAB
+         *
+         * IMPORTANT:
+         * This is intentionally ABOVE the message composer.
+         * It must NOT sit on top of the Send button.
+         * =====================================================
+         */
+
         .yuva-voice-fab {
             position: fixed;
             right: 22px;
-            bottom: 22px;
+            bottom: 92px;
+
             width: 56px;
             height: 56px;
+
             border: 1px solid rgba(255,255,255,.14);
             border-radius: 50%;
+
             background: rgba(20,20,30,.88);
             color: white;
+
             font-size: 23px;
+
             cursor: pointer;
+
             display: flex;
             align-items: center;
             justify-content: center;
+
             backdrop-filter: blur(18px);
             -webkit-backdrop-filter: blur(18px);
-            box-shadow: 0 12px 35px rgba(0,0,0,.35);
+
+            box-shadow:
+                0 12px 35px rgba(0,0,0,.35);
+
             z-index: 9998;
+
             transition:
                 transform .2s ease,
                 box-shadow .2s ease;
         }
 
         .yuva-voice-fab:hover {
-            transform: translateY(-3px) scale(1.04);
-            box-shadow: 0 18px 45px rgba(0,0,0,.45);
+            transform:
+                translateY(-3px)
+                scale(1.04);
+
+            box-shadow:
+                0 18px 45px rgba(0,0,0,.45);
         }
 
         .yuva-voice-fab.active {
             transform: scale(1.08);
+
             box-shadow:
                 0 0 0 6px rgba(150,120,255,.12),
                 0 18px 45px rgba(0,0,0,.45);
         }
 
+        /*
+         * Voice settings card.
+         * It opens ABOVE the voice button,
+         * never over the message input.
+         */
+
         .yuva-voice-card {
             position: fixed;
+
             right: 22px;
-            bottom: 90px;
+            bottom: 158px;
+
             width: 310px;
+
             padding: 17px;
-            border: 1px solid rgba(255,255,255,.12);
+
+            border:
+                1px solid rgba(255,255,255,.12);
+
             border-radius: 18px;
-            background: rgba(20,20,30,.94);
+
+            background:
+                rgba(20,20,30,.94);
+
             color: white;
+
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
-            box-shadow: 0 20px 60px rgba(0,0,0,.38);
+
+            box-shadow:
+                0 20px 60px rgba(0,0,0,.38);
+
             z-index: 9997;
-            transform: translateY(10px) scale(.97);
+
+            transform:
+                translateY(10px)
+                scale(.97);
+
             opacity: 0;
+
             pointer-events: none;
+
             transition:
                 opacity .2s ease,
                 transform .2s ease;
@@ -2378,7 +2370,11 @@ function buildVoiceExperiencePanel() {
 
         .yuva-voice-card.open {
             opacity: 1;
-            transform: translateY(0) scale(1);
+
+            transform:
+                translateY(0)
+                scale(1);
+
             pointer-events: auto;
         }
 
@@ -2386,7 +2382,9 @@ function buildVoiceExperiencePanel() {
             display: flex;
             align-items: center;
             justify-content: space-between;
+
             gap: 12px;
+
             margin-bottom: 14px;
         }
 
@@ -2403,15 +2401,23 @@ function buildVoiceExperiencePanel() {
 
         .yuva-voice-status {
             font-size: 11px;
+
             padding: 5px 8px;
+
             border-radius: 999px;
-            background: rgba(255,255,255,.08);
+
+            background:
+                rgba(255,255,255,.08);
+
             white-space: nowrap;
         }
 
         .yuva-voice-status.live {
-            background: rgba(90,220,150,.13);
-            color: #a8ffd0;
+            background:
+                rgba(90,220,150,.13);
+
+            color:
+                #a8ffd0;
         }
 
         .yuva-voice-row {
@@ -2421,8 +2427,10 @@ function buildVoiceExperiencePanel() {
         .yuva-voice-label {
             display: flex;
             justify-content: space-between;
+
             font-size: 12px;
             opacity: .82;
+
             margin-bottom: 7px;
         }
 
@@ -2434,11 +2442,19 @@ function buildVoiceExperiencePanel() {
         .yuva-voice-select {
             width: 100%;
             box-sizing: border-box;
+
             padding: 9px 10px;
-            border: 1px solid rgba(255,255,255,.12);
+
+            border:
+                1px solid rgba(255,255,255,.12);
+
             border-radius: 11px;
-            background: rgba(255,255,255,.06);
+
+            background:
+                rgba(255,255,255,.06);
+
             color: inherit;
+
             outline: none;
         }
 
@@ -2449,75 +2465,160 @@ function buildVoiceExperiencePanel() {
 
         .yuva-voice-actions {
             display: grid;
-            grid-template-columns: 1fr 1fr;
+
+            grid-template-columns:
+                1fr 1fr;
+
             gap: 8px;
+
             margin-top: 14px;
         }
 
         .yuva-voice-btn {
-            border: 1px solid rgba(255,255,255,.11);
+            border:
+                1px solid rgba(255,255,255,.11);
+
             border-radius: 11px;
+
             padding: 10px;
-            background: rgba(255,255,255,.06);
+
+            background:
+                rgba(255,255,255,.06);
+
             color: #fff;
+
             cursor: pointer;
         }
 
         .yuva-voice-btn:hover {
-            background: rgba(255,255,255,.10);
+            background:
+                rgba(255,255,255,.10);
         }
 
         .yuva-voice-btn.danger {
-            background: rgba(255,80,100,.10);
+            background:
+                rgba(255,80,100,.10);
         }
 
         .yuva-voice-switch {
             display: flex;
+
             align-items: center;
             justify-content: space-between;
+
             padding: 10px 0;
+
             font-size: 12px;
         }
 
         .yuva-switch {
             width: 42px;
             height: 24px;
+
             border-radius: 999px;
             border: 0;
+
             padding: 3px;
-            background: rgba(255,255,255,.16);
+
+            background:
+                rgba(255,255,255,.16);
+
             cursor: pointer;
         }
 
         .yuva-switch span {
             display: block;
+
             width: 18px;
             height: 18px;
+
             border-radius: 50%;
+
             background: #fff;
-            transition: transform .18s ease;
+
+            transition:
+                transform .18s ease;
         }
 
         .yuva-switch.on {
-            background: rgba(100,220,160,.55);
+            background:
+                rgba(100,220,160,.55);
         }
 
         .yuva-switch.on span {
-            transform: translateX(18px);
+            transform:
+                translateX(18px);
         }
 
-        @media (max-width:600px) {
+        /*
+         * =====================================================
+         * MOBILE
+         * =====================================================
+         *
+         * Voice button is deliberately kept above the composer.
+         * It no longer occupies the Send button area.
+         */
+
+        @media (max-width: 600px) {
 
             .yuva-voice-fab {
                 right: 14px;
-                bottom: 14px;
+
+                /*
+                 * Leave the bottom composer completely free.
+                 */
+                bottom: 92px;
+
+                width: 52px;
+                height: 52px;
+
+                font-size: 21px;
             }
 
             .yuva-voice-card {
                 right: 14px;
-                bottom: 78px;
-                width: calc(100vw - 28px);
+
+                /*
+                 * Card opens above the voice FAB.
+                 */
+                bottom: 154px;
+
+                width:
+                    calc(100vw - 28px);
+
+                max-height:
+                    calc(100vh - 190px);
+
+                overflow-y: auto;
+
                 box-sizing: border-box;
+            }
+
+            .yuva-voice-actions {
+                grid-template-columns:
+                    1fr 1fr;
+            }
+        }
+
+        /*
+         * Very small phones.
+         */
+        @media (max-width: 380px) {
+
+            .yuva-voice-fab {
+                right: 12px;
+                bottom: 88px;
+
+                width: 50px;
+                height: 50px;
+            }
+
+            .yuva-voice-card {
+                right: 10px;
+                bottom: 148px;
+
+                width:
+                    calc(100vw - 20px);
             }
         }
     `;
@@ -2531,19 +2632,27 @@ function buildVoiceExperiencePanel() {
     fab.className = "yuva-voice-fab";
     fab.id = "yuvaVoiceFab";
     fab.title = "Voice controls";
+    fab.setAttribute(
+        "aria-label",
+        "Open YUVA voice controls"
+    );
     fab.textContent = "🎙️";
 
     const card =
         document.createElement("div");
 
-    card.className = "yuva-voice-card";
-    card.id = "yuvaVoiceExperienceCard";
+    card.className =
+        "yuva-voice-card";
+
+    card.id =
+        "yuvaVoiceExperienceCard";
 
     card.innerHTML = `
 
         <div class="yuva-voice-head">
 
             <div>
+
                 <div class="yuva-voice-title">
                     YUVA Voice
                 </div>
@@ -2551,6 +2660,7 @@ function buildVoiceExperiencePanel() {
                 <div class="yuva-voice-sub">
                     Control how YUVA sounds
                 </div>
+
             </div>
 
             <div
@@ -2658,6 +2768,7 @@ function buildVoiceExperiencePanel() {
                 class="yuva-switch"
                 id="yuvaAutoSpeak"
                 type="button"
+                aria-label="Toggle auto speak"
             >
                 <span></span>
             </button>
@@ -2947,9 +3058,20 @@ function buildVoiceExperiencePanel() {
             }
         );
 
+    /*
+     * VOICE BUTTON ONLY OPENS VOICE SETTINGS.
+     *
+     * It does NOT send a message.
+     * It does NOT trigger the microphone.
+     * It does NOT modify the Send button.
+     */
+
     fab.addEventListener(
         "click",
-        function() {
+        function(event) {
+
+            event.preventDefault();
+            event.stopPropagation();
 
             const open =
                 card.classList.toggle("open");
@@ -2961,6 +3083,28 @@ function buildVoiceExperiencePanel() {
 
             if (open) {
                 populatePanelVoices();
+            }
+        }
+    );
+
+    /*
+     * Clicking outside the panel closes it.
+     * This keeps the voice settings out of the
+     * normal message-sending workflow.
+     */
+
+    document.addEventListener(
+        "click",
+        function(event) {
+
+            if (
+                !card.contains(event.target) &&
+                !fab.contains(event.target)
+            ) {
+
+                card.classList.remove("open");
+
+                fab.classList.remove("active");
             }
         }
     );
@@ -3023,6 +3167,7 @@ function installYuvaVisualEnhancements() {
 
         .yuva-message-enter {
             opacity: 0;
+
             transform:
                 translateY(10px)
                 scale(0.985);
@@ -3034,6 +3179,7 @@ function installYuvaVisualEnhancements() {
 
         .yuva-message-enter.yuva-message-visible {
             opacity: 1;
+
             transform:
                 translateY(0)
                 scale(1);
@@ -3047,9 +3193,15 @@ function installYuvaVisualEnhancements() {
 
         .speak-message-button {
             border: 0;
-            background: transparent;
+
+            background:
+                transparent;
+
             cursor: pointer;
-            padding: 4px 6px;
+
+            padding:
+                4px 6px;
+
             opacity: .65;
 
             transition:
@@ -3077,8 +3229,11 @@ function installYuvaVisualEnhancements() {
         .thinking-dots span {
             width: 4px;
             height: 4px;
+
             border-radius: 50%;
-            background: currentColor;
+
+            background:
+                currentColor;
 
             animation:
                 yuvaThinkingDot 1.2s
@@ -3165,9 +3320,6 @@ document.addEventListener(
 
         installYuvaVisualEnhancements();
 
-        /*
-         * Build the voice panel AFTER DOM is ready.
-         */
         buildVoiceExperiencePanel();
     }
 );
