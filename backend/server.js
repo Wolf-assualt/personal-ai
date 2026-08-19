@@ -9,7 +9,6 @@ const Groq = require("groq-sdk");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-
 const groq = new Groq({
     apiKey: process.env.GROQ_API_KEY
 });
@@ -1608,8 +1607,7 @@ You are YUVA AI.
             const completion =
                 await groq.chat.completions.create({
 
-                    model:
-                        "llama-3.1-8b-instant",
+                    model: "openai/gpt-oss-20b",
 
                     messages: [
 
